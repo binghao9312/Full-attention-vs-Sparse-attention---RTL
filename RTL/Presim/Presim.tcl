@@ -1,0 +1,1 @@
+vcs -R -debug_access -full64 -sverilog +v2k ../Rtl/qk_dot_product.v ../Rtl/full_attention_core.v ../Rtl/pattern_controller.v ../Rtl/kv_line_buffer.v ../Rtl/qk_pair_streamer.v ../Rtl/stats_counter.v ../Rtl/sparse_attention_core.v tb.v
