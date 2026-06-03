@@ -1,1 +1,19 @@
 docs/
+
+# Simulation outputs
+RTL/Presim/csrc/
+RTL/Presim/simv*
+RTL/Presim/*.fsdb
+RTL/Presim/*.log
+RTL/Presim/ucli.key
+
+# Design Compiler / synthesis outputs and process-related files
+RTL/Syn/**/*.ddc
+RTL/Syn/**/*.sdf
+RTL/Syn/**/*_syn.v
+RTL/Syn/**/*.svf
+RTL/Syn/**/*.log
+RTL/Syn/**/.synopsys_dc.setup
+
+# Optional local result dumps
+RES/

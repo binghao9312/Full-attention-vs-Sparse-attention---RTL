@@ -1,0 +1,309 @@
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : full_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:47:58 2026
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: q_idx_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: attention_score[20]
+            (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  q_idx_reg[0]/CK (DFFRX2)                                0.00       0.00 r
+  q_idx_reg[0]/Q (DFFRX2)                                 0.54       0.54 f
+  u_qk_dot_product/q_idx[0] (qk_dot_product)              0.00       0.54 f
+  u_qk_dot_product/add_23_2/A[0] (qk_dot_product_DW01_inc_0_DW01_inc_4)
+                                                          0.00       0.54 f
+  u_qk_dot_product/add_23_2/U1_1_1/CO (CMPR22X2)          0.20       0.74 f
+  u_qk_dot_product/add_23_2/U1_1_2/CO (ADDHX4)            0.15       0.89 f
+  u_qk_dot_product/add_23_2/U1_1_3/CO (ADDHX4)            0.12       1.01 f
+  u_qk_dot_product/add_23_2/U1/Y (AND2X2)                 0.18       1.19 f
+  u_qk_dot_product/add_23_2/U1_1_5/CO (ADDHX2)            0.18       1.38 f
+  u_qk_dot_product/add_23_2/U1_1_6/S (ADDHX4)             0.11       1.48 f
+  u_qk_dot_product/add_23_2/SUM[6] (qk_dot_product_DW01_inc_0_DW01_inc_4)
+                                                          0.00       1.48 f
+  u_qk_dot_product/U25/Y (CLKBUFX3)                       0.18       1.66 f
+  u_qk_dot_product/add_23_2_I2/A[6] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       1.66 f
+  u_qk_dot_product/add_23_2_I2/U1_1_6/CO (ADDHXL)         0.17       1.84 f
+  u_qk_dot_product/add_23_2_I2/U1_1_7/S (ADDHXL)          0.22       2.06 r
+  u_qk_dot_product/add_23_2_I2/SUM[7] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       2.06 r
+  u_qk_dot_product/mult_25_I2/a[7] (qk_dot_product_DW_mult_uns_2)
+                                                          0.00       2.06 r
+  u_qk_dot_product/mult_25_I2/U326/Y (CLKINVX1)           0.32       2.38 f
+  u_qk_dot_product/mult_25_I2/U366/Y (XOR2X1)             0.23       2.60 f
+  u_qk_dot_product/mult_25_I2/U364/Y (OAI22XL)            0.24       2.84 r
+  u_qk_dot_product/mult_25_I2/U252/Y (INVXL)              0.08       2.92 f
+  u_qk_dot_product/mult_25_I2/U253/Y (CLKINVX1)           0.08       3.00 r
+  u_qk_dot_product/mult_25_I2/U49/S (CMPR42X1)            0.70       3.71 f
+  u_qk_dot_product/mult_25_I2/U16/CO (ADDFXL)             0.54       4.25 f
+  u_qk_dot_product/mult_25_I2/U15/CO (ADDFXL)             0.38       4.63 f
+  u_qk_dot_product/mult_25_I2/U14/CO (ADDFXL)             0.38       5.00 f
+  u_qk_dot_product/mult_25_I2/U13/CO (ADDFXL)             0.38       5.38 f
+  u_qk_dot_product/mult_25_I2/U12/CO (ADDFXL)             0.38       5.75 f
+  u_qk_dot_product/mult_25_I2/U11/CO (ADDFXL)             0.38       6.13 f
+  u_qk_dot_product/mult_25_I2/U10/CO (ADDFXL)             0.38       6.51 f
+  u_qk_dot_product/mult_25_I2/U9/CO (ADDFXL)              0.38       6.88 f
+  u_qk_dot_product/mult_25_I2/U279/CO (ADDFXL)            0.38       7.26 f
+  u_qk_dot_product/mult_25_I2/U7/S (ADDFXL)               0.37       7.63 r
+  u_qk_dot_product/mult_25_I2/product[16] (qk_dot_product_DW_mult_uns_2)
+                                                          0.00       7.63 r
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/B[16] (qk_dot_product_DW01_add_3_DW01_add_4)
+                                                          0.00       7.63 r
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/U1_16/S (ADDFXL)
+                                                          0.65       8.28 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/SUM[16] (qk_dot_product_DW01_add_3_DW01_add_4)
+                                                          0.00       8.28 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/B[16] (qk_dot_product_DW01_add_1_DW01_add_2)
+                                                          0.00       8.28 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_16/CO (ADDFXL)
+                                                          0.65       8.93 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_17/CO (ADDFX2)
+                                                          0.31       9.24 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_18/CO (ADDFHX1)
+                                                          0.25       9.49 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_19/CO (ADDFX1)
+                                                          0.27       9.76 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_20/S (ADDFX1)
+                                                          0.24      10.00 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/SUM[20] (qk_dot_product_DW01_add_1_DW01_add_2)
+                                                          0.00      10.00 r
+  u_qk_dot_product/attention_score[20] (qk_dot_product)
+                                                          0.00      10.00 r
+  attention_score[20] (out)                               0.00      10.00 r
+  data arrival time                                                 10.00
+
+  clock clk (rise edge)                                  10.00      10.00
+  clock network delay (ideal)                             0.00      10.00
+  output external delay                                   0.00      10.00
+  data required time                                                10.00
+  --------------------------------------------------------------------------
+  data required time                                                10.00
+  data arrival time                                                -10.00
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.00
+
+
+1
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : full_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:48:35 2026
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: q_idx_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: attention_score[20]
+            (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  q_idx_reg[0]/CK (DFFRX2)                                0.00       0.00 r
+  q_idx_reg[0]/Q (DFFRX2)                                 0.54       0.54 f
+  u_qk_dot_product/q_idx[0] (qk_dot_product)              0.00       0.54 f
+  u_qk_dot_product/add_23_2/A[0] (qk_dot_product_DW01_inc_0_DW01_inc_4)
+                                                          0.00       0.54 f
+  u_qk_dot_product/add_23_2/U1_1_1/CO (CMPR22X2)          0.20       0.74 f
+  u_qk_dot_product/add_23_2/U1_1_2/CO (ADDHX4)            0.15       0.89 f
+  u_qk_dot_product/add_23_2/U1_1_3/CO (ADDHX4)            0.12       1.01 f
+  u_qk_dot_product/add_23_2/U1/Y (AND2X2)                 0.18       1.19 f
+  u_qk_dot_product/add_23_2/U1_1_5/CO (ADDHX2)            0.18       1.38 f
+  u_qk_dot_product/add_23_2/U1_1_6/S (ADDHX4)             0.11       1.48 f
+  u_qk_dot_product/add_23_2/SUM[6] (qk_dot_product_DW01_inc_0_DW01_inc_4)
+                                                          0.00       1.48 f
+  u_qk_dot_product/U25/Y (CLKBUFX3)                       0.18       1.66 f
+  u_qk_dot_product/add_23_2_I2/A[6] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       1.66 f
+  u_qk_dot_product/add_23_2_I2/U1_1_6/CO (ADDHXL)         0.17       1.84 f
+  u_qk_dot_product/add_23_2_I2/U1_1_7/S (ADDHXL)          0.22       2.06 r
+  u_qk_dot_product/add_23_2_I2/SUM[7] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       2.06 r
+  u_qk_dot_product/mult_25_I2/a[7] (qk_dot_product_DW_mult_uns_2)
+                                                          0.00       2.06 r
+  u_qk_dot_product/mult_25_I2/U326/Y (CLKINVX1)           0.32       2.38 f
+  u_qk_dot_product/mult_25_I2/U366/Y (XOR2X1)             0.23       2.60 f
+  u_qk_dot_product/mult_25_I2/U364/Y (OAI22XL)            0.24       2.84 r
+  u_qk_dot_product/mult_25_I2/U252/Y (INVXL)              0.08       2.92 f
+  u_qk_dot_product/mult_25_I2/U253/Y (CLKINVX1)           0.08       3.00 r
+  u_qk_dot_product/mult_25_I2/U49/S (CMPR42X1)            0.70       3.71 f
+  u_qk_dot_product/mult_25_I2/U16/CO (ADDFXL)             0.54       4.25 f
+  u_qk_dot_product/mult_25_I2/U15/CO (ADDFXL)             0.38       4.63 f
+  u_qk_dot_product/mult_25_I2/U14/CO (ADDFXL)             0.38       5.00 f
+  u_qk_dot_product/mult_25_I2/U13/CO (ADDFXL)             0.38       5.38 f
+  u_qk_dot_product/mult_25_I2/U12/CO (ADDFXL)             0.38       5.75 f
+  u_qk_dot_product/mult_25_I2/U11/CO (ADDFXL)             0.38       6.13 f
+  u_qk_dot_product/mult_25_I2/U10/CO (ADDFXL)             0.38       6.51 f
+  u_qk_dot_product/mult_25_I2/U9/CO (ADDFXL)              0.38       6.88 f
+  u_qk_dot_product/mult_25_I2/U279/CO (ADDFXL)            0.38       7.26 f
+  u_qk_dot_product/mult_25_I2/U7/S (ADDFXL)               0.37       7.63 r
+  u_qk_dot_product/mult_25_I2/product[16] (qk_dot_product_DW_mult_uns_2)
+                                                          0.00       7.63 r
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/B[16] (qk_dot_product_DW01_add_3_DW01_add_4)
+                                                          0.00       7.63 r
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/U1_16/S (ADDFXL)
+                                                          0.65       8.28 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/SUM[16] (qk_dot_product_DW01_add_3_DW01_add_4)
+                                                          0.00       8.28 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/B[16] (qk_dot_product_DW01_add_1_DW01_add_2)
+                                                          0.00       8.28 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_16/CO (ADDFXL)
+                                                          0.65       8.93 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_17/CO (ADDFX2)
+                                                          0.31       9.24 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_18/CO (ADDFHX1)
+                                                          0.25       9.49 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_19/CO (ADDFX1)
+                                                          0.27       9.76 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_20/S (ADDFX1)
+                                                          0.24      10.00 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/SUM[20] (qk_dot_product_DW01_add_1_DW01_add_2)
+                                                          0.00      10.00 r
+  u_qk_dot_product/attention_score[20] (qk_dot_product)
+                                                          0.00      10.00 r
+  attention_score[20] (out)                               0.00      10.00 r
+  data arrival time                                                 10.00
+
+  clock clk (rise edge)                                  10.00      10.00
+  clock network delay (ideal)                             0.00      10.00
+  output external delay                                   0.00      10.00
+  data required time                                                10.00
+  --------------------------------------------------------------------------
+  data required time                                                10.00
+  data arrival time                                                -10.00
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.00
+
+
+1
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : full_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:52:22 2026
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: q_idx_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: attention_score[20]
+            (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  q_idx_reg[0]/CK (DFFRX2)                                0.00       0.00 r
+  q_idx_reg[0]/Q (DFFRX2)                                 0.54       0.54 f
+  u_qk_dot_product/q_idx[0] (qk_dot_product)              0.00       0.54 f
+  u_qk_dot_product/add_23_2/A[0] (qk_dot_product_DW01_inc_0_DW01_inc_4)
+                                                          0.00       0.54 f
+  u_qk_dot_product/add_23_2/U1_1_1/CO (CMPR22X2)          0.20       0.74 f
+  u_qk_dot_product/add_23_2/U1_1_2/CO (ADDHX4)            0.15       0.89 f
+  u_qk_dot_product/add_23_2/U1_1_3/CO (ADDHX4)            0.12       1.01 f
+  u_qk_dot_product/add_23_2/U1/Y (AND2X2)                 0.18       1.19 f
+  u_qk_dot_product/add_23_2/U1_1_5/CO (ADDHX2)            0.18       1.38 f
+  u_qk_dot_product/add_23_2/U1_1_6/S (ADDHX4)             0.11       1.48 f
+  u_qk_dot_product/add_23_2/SUM[6] (qk_dot_product_DW01_inc_0_DW01_inc_4)
+                                                          0.00       1.48 f
+  u_qk_dot_product/U25/Y (CLKBUFX3)                       0.18       1.66 f
+  u_qk_dot_product/add_23_2_I2/A[6] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       1.66 f
+  u_qk_dot_product/add_23_2_I2/U1_1_6/CO (ADDHXL)         0.17       1.84 f
+  u_qk_dot_product/add_23_2_I2/U1_1_7/S (ADDHXL)          0.22       2.06 r
+  u_qk_dot_product/add_23_2_I2/SUM[7] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       2.06 r
+  u_qk_dot_product/mult_25_I2/a[7] (qk_dot_product_DW_mult_uns_2)
+                                                          0.00       2.06 r
+  u_qk_dot_product/mult_25_I2/U326/Y (CLKINVX1)           0.32       2.38 f
+  u_qk_dot_product/mult_25_I2/U366/Y (XOR2X1)             0.23       2.60 f
+  u_qk_dot_product/mult_25_I2/U364/Y (OAI22XL)            0.24       2.84 r
+  u_qk_dot_product/mult_25_I2/U252/Y (INVXL)              0.08       2.92 f
+  u_qk_dot_product/mult_25_I2/U253/Y (CLKINVX1)           0.08       3.00 r
+  u_qk_dot_product/mult_25_I2/U49/S (CMPR42X1)            0.70       3.71 f
+  u_qk_dot_product/mult_25_I2/U16/CO (ADDFXL)             0.54       4.25 f
+  u_qk_dot_product/mult_25_I2/U15/CO (ADDFXL)             0.38       4.63 f
+  u_qk_dot_product/mult_25_I2/U14/CO (ADDFXL)             0.38       5.00 f
+  u_qk_dot_product/mult_25_I2/U13/CO (ADDFXL)             0.38       5.38 f
+  u_qk_dot_product/mult_25_I2/U12/CO (ADDFXL)             0.38       5.75 f
+  u_qk_dot_product/mult_25_I2/U11/CO (ADDFXL)             0.38       6.13 f
+  u_qk_dot_product/mult_25_I2/U10/CO (ADDFXL)             0.38       6.51 f
+  u_qk_dot_product/mult_25_I2/U9/CO (ADDFXL)              0.38       6.88 f
+  u_qk_dot_product/mult_25_I2/U279/CO (ADDFXL)            0.38       7.26 f
+  u_qk_dot_product/mult_25_I2/U7/S (ADDFXL)               0.37       7.63 r
+  u_qk_dot_product/mult_25_I2/product[16] (qk_dot_product_DW_mult_uns_2)
+                                                          0.00       7.63 r
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/B[16] (qk_dot_product_DW01_add_3_DW01_add_4)
+                                                          0.00       7.63 r
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/U1_16/S (ADDFXL)
+                                                          0.65       8.28 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/SUM[16] (qk_dot_product_DW01_add_3_DW01_add_4)
+                                                          0.00       8.28 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/B[16] (qk_dot_product_DW01_add_1_DW01_add_2)
+                                                          0.00       8.28 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_16/CO (ADDFXL)
+                                                          0.65       8.93 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_17/CO (ADDFX2)
+                                                          0.31       9.24 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_18/CO (ADDFHX1)
+                                                          0.25       9.49 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_19/CO (ADDFX1)
+                                                          0.27       9.76 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_20/S (ADDFX1)
+                                                          0.24      10.00 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/SUM[20] (qk_dot_product_DW01_add_1_DW01_add_2)
+                                                          0.00      10.00 r
+  u_qk_dot_product/attention_score[20] (qk_dot_product)
+                                                          0.00      10.00 r
+  attention_score[20] (out)                               0.00      10.00 r
+  data arrival time                                                 10.00
+
+  clock clk (rise edge)                                  10.00      10.00
+  clock network delay (ideal)                             0.00      10.00
+  output external delay                                   0.00      10.00
+  data required time                                                10.00
+  --------------------------------------------------------------------------
+  data required time                                                10.00
+  data arrival time                                                -10.00
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.00
+
+
+1

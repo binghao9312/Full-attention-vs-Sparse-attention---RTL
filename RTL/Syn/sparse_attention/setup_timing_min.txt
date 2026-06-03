@@ -1,0 +1,190 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay min
+        -max_paths 1
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:49:39 2026
+****************************************
+
+Operating Conditions: nom_pvt   Library: gtech
+Wire Load Model Mode: top
+
+  Startpoint: u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: attention_score[0]
+            (output port clocked by clk)
+  Path Group: clk
+  Path Type: min
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]/clocked_on (**SEQGEN**)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]/Q (**SEQGEN**)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/q_idx[0] (pattern_controller)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/q_idx[0] (qk_pair_streamer)          0.00       0.00 r
+  u_qk_dot_product/q_idx[0] (qk_dot_product)              0.00       0.00 r
+  u_qk_dot_product/add_23_I4/A_0 (*ADD_UNS_OP_8_2_9)      0.00       0.00 r
+  u_qk_dot_product/add_23_I4/*cell*74/A[0] (DW01_add_width9)
+                                                          0.00       0.00 r
+  ...
+  u_qk_dot_product/add_23_I4/*cell*74/SUM[0] (DW01_add_width9)
+                                                          0.00       0.00 f
+  u_qk_dot_product/add_23_I4/Z_0 (*ADD_UNS_OP_8_2_9)      0.00       0.00 f
+  u_qk_dot_product/add_23_2_I4/A_0 (*ADD_UNS_OP_9_1_10)
+                                                          0.00       0.00 f
+  u_qk_dot_product/add_23_2_I4/*cell*77/A[0] (DW01_inc_width10)
+                                                          0.00       0.00 f
+  ...
+  u_qk_dot_product/add_23_2_I4/*cell*77/SUM[0] (DW01_inc_width10)
+                                                          0.00       0.00 r
+  u_qk_dot_product/add_23_2_I4/Z_0 (*ADD_UNS_OP_9_1_10)
+                                                          0.00       0.00 r
+  u_qk_dot_product/mult_25_I4/A_0 (*MULT_UNS_OP_10_10_20)
+                                                          0.00       0.00 r
+  u_qk_dot_product/mult_25_I4/*cell*87/A[0] (DW02_mult_A_width10_B_width10)
+                                                          0.00       0.00 r
+  ...
+  u_qk_dot_product/mult_25_I4/*cell*87/PRODUCT[0] (DW02_mult_A_width10_B_width10)
+                                                          0.00       0.00 r
+  u_qk_dot_product/mult_25_I4/Z_0 (*MULT_UNS_OP_10_10_20)
+                                                          0.00       0.00 r
+  u_qk_dot_product/add_25_I4/B_0 (*ADD_UNS_OP_22_20_23)
+                                                          0.00       0.00 r
+  u_qk_dot_product/add_25_I4/*cell*91/B[0] (DW01_add_width23)
+                                                          0.00       0.00 r
+  ...
+  u_qk_dot_product/add_25_I4/*cell*91/SUM[0] (DW01_add_width23)
+                                                          0.00       0.00 r
+  u_qk_dot_product/add_25_I4/Z_0 (*ADD_UNS_OP_22_20_23)
+                                                          0.00       0.00 r
+  u_qk_dot_product/attention_score[0] (qk_dot_product)
+                                                          0.00       0.00 r
+  attention_score[0] (out)                                0.00       0.00 r
+  data arrival time                                                  0.00
+
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  output external delay                                   0.00       0.00
+  data required time                                                 0.00
+  --------------------------------------------------------------------------
+  data required time                                                 0.00
+  data arrival time                                                  0.00
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.00
+
+
+1
+ 
+****************************************
+Report : timing
+        -path full
+        -delay min
+        -max_paths 1
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:50:51 2026
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: mode[0] (input port clocked by clk)
+  Endpoint: u_qk_pair_streamer/u_pattern_controller/done_pending_reg
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: min
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  input external delay                                    0.00       0.00 r
+  mode[0] (in)                                            0.00       0.00 r
+  u_qk_pair_streamer/mode[0] (qk_pair_streamer)           0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/mode[0] (pattern_controller)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/U114/Y (NAND2X1)
+                                                          0.05       0.05 f
+  u_qk_pair_streamer/u_pattern_controller/U29/Y (CLKINVX1)
+                                                          0.05       0.10 r
+  u_qk_pair_streamer/u_pattern_controller/U28/Y (OAI32X1)
+                                                          0.10       0.19 f
+  u_qk_pair_streamer/u_pattern_controller/done_pending_reg/D (DFFRX1)
+                                                          0.00       0.19 f
+  data arrival time                                                  0.19
+
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  u_qk_pair_streamer/u_pattern_controller/done_pending_reg/CK (DFFRX1)
+                                                          0.00       0.00 r
+  library hold time                                      -0.03      -0.03
+  data required time                                                -0.03
+  --------------------------------------------------------------------------
+  data required time                                                -0.03
+  data arrival time                                                 -0.19
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.22
+
+
+1
+ 
+****************************************
+Report : timing
+        -path full
+        -delay min
+        -max_paths 1
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:51:47 2026
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: mode[0] (input port clocked by clk)
+  Endpoint: u_qk_pair_streamer/u_pattern_controller/done_pending_reg
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: min
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  input external delay                                    0.00       0.00 r
+  mode[0] (in)                                            0.00       0.00 r
+  u_qk_pair_streamer/mode[0] (qk_pair_streamer)           0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/mode[0] (pattern_controller)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/U114/Y (NAND2X1)
+                                                          0.05       0.05 f
+  u_qk_pair_streamer/u_pattern_controller/U29/Y (CLKINVX1)
+                                                          0.05       0.10 r
+  u_qk_pair_streamer/u_pattern_controller/U28/Y (OAI32X1)
+                                                          0.10       0.19 f
+  u_qk_pair_streamer/u_pattern_controller/done_pending_reg/D (DFFRX1)
+                                                          0.00       0.19 f
+  data arrival time                                                  0.19
+
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  u_qk_pair_streamer/u_pattern_controller/done_pending_reg/CK (DFFRX1)
+                                                          0.00       0.00 r
+  library hold time                                      -0.03      -0.03
+  data required time                                                -0.03
+  --------------------------------------------------------------------------
+  data required time                                                -0.03
+  data arrival time                                                 -0.19
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.22
+
+
+1

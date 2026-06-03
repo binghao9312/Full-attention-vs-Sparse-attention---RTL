@@ -1,0 +1,92 @@
+ 
+****************************************
+Report : area
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:49:39 2026
+****************************************
+
+Library(s) Used:
+
+    gtech (File: /usr/cad/synopsys/synthesis/cur/libraries/syn/gtech.db)
+
+Number of ports:                         2825
+Number of nets:                          5956
+Number of cells:                         2586
+Number of combinational cells:           2237
+Number of sequential cells:               229
+Number of macros/black boxes:               0
+Number of buf/inv:                        153
+Number of references:                       3
+
+Combinational area:                  0.000000
+Buf/Inv area:                        0.000000
+Noncombinational area:               0.000000
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:                     0.000000
+Total area:                 undefined
+
+Information: This design contains unmapped logic. (RPT-7)
+1
+ 
+****************************************
+Report : area
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:50:51 2026
+****************************************
+
+Library(s) Used:
+
+    slow (File: /usr/cad/designkit/CBDK_IC_Contest_v2.1/SynopsysDC/db/slow.db)
+
+Number of ports:                         1080
+Number of nets:                          3001
+Number of cells:                         1802
+Number of combinational cells:           1564
+Number of sequential cells:               176
+Number of macros/black boxes:               0
+Number of buf/inv:                        207
+Number of references:                       5
+
+Combinational area:              20412.932532
+Buf/Inv area:                      865.673987
+Noncombinational area:            5723.632610
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:                 26136.565142
+Total area:                 undefined
+1
+ 
+****************************************
+Report : area
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:51:47 2026
+****************************************
+
+Library(s) Used:
+
+    slow (File: /usr/cad/designkit/CBDK_IC_Contest_v2.5/SynopsysDC/db/slow.db)
+
+Number of ports:                         1080
+Number of nets:                          3001
+Number of cells:                         1802
+Number of combinational cells:           1564
+Number of sequential cells:               176
+Number of macros/black boxes:               0
+Number of buf/inv:                        207
+Number of references:                       5
+
+Combinational area:              20412.932532
+Buf/Inv area:                      865.673987
+Noncombinational area:            5723.632610
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:                 26136.565142
+Total area:                 undefined
+1

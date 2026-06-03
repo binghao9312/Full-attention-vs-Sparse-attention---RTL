@@ -1,0 +1,369 @@
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Error: Could not read the following target libraries:
+your_library.db 
+ (UIO-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Warning: Can't read link_library file 'your_library.db'. (UID-3)
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:49:39 2026
+****************************************
+
+Operating Conditions: nom_pvt   Library: gtech
+Wire Load Model Mode: top
+
+  Startpoint: u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: attention_score[0]
+            (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]/clocked_on (**SEQGEN**)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]/Q (**SEQGEN**)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/q_idx[0] (pattern_controller)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/q_idx[0] (qk_pair_streamer)          0.00       0.00 r
+  u_qk_dot_product/q_idx[0] (qk_dot_product)              0.00       0.00 r
+  u_qk_dot_product/add_23_I4/A_0 (*ADD_UNS_OP_8_2_9)      0.00       0.00 r
+  u_qk_dot_product/add_23_I4/*cell*74/A[0] (DW01_add_width9)
+                                                          0.00       0.00 r
+  ...
+  u_qk_dot_product/add_23_I4/*cell*74/SUM[0] (DW01_add_width9)
+                                                          0.00       0.00 f
+  u_qk_dot_product/add_23_I4/Z_0 (*ADD_UNS_OP_8_2_9)      0.00       0.00 f
+  u_qk_dot_product/add_23_2_I4/A_0 (*ADD_UNS_OP_9_1_10)
+                                                          0.00       0.00 f
+  u_qk_dot_product/add_23_2_I4/*cell*77/A[0] (DW01_inc_width10)
+                                                          0.00       0.00 f
+  ...
+  u_qk_dot_product/add_23_2_I4/*cell*77/SUM[0] (DW01_inc_width10)
+                                                          0.00       0.00 r
+  u_qk_dot_product/add_23_2_I4/Z_0 (*ADD_UNS_OP_9_1_10)
+                                                          0.00       0.00 r
+  u_qk_dot_product/mult_25_I4/A_0 (*MULT_UNS_OP_10_10_20)
+                                                          0.00       0.00 r
+  u_qk_dot_product/mult_25_I4/*cell*87/A[0] (DW02_mult_A_width10_B_width10)
+                                                          0.00       0.00 r
+  ...
+  u_qk_dot_product/mult_25_I4/*cell*87/PRODUCT[0] (DW02_mult_A_width10_B_width10)
+                                                          0.00       0.00 r
+  u_qk_dot_product/mult_25_I4/Z_0 (*MULT_UNS_OP_10_10_20)
+                                                          0.00       0.00 r
+  u_qk_dot_product/add_25_I4/B_0 (*ADD_UNS_OP_22_20_23)
+                                                          0.00       0.00 r
+  u_qk_dot_product/add_25_I4/*cell*91/B[0] (DW01_add_width23)
+                                                          0.00       0.00 r
+  ...
+  u_qk_dot_product/add_25_I4/*cell*91/SUM[0] (DW01_add_width23)
+                                                          0.00       0.00 r
+  u_qk_dot_product/add_25_I4/Z_0 (*ADD_UNS_OP_22_20_23)
+                                                          0.00       0.00 r
+  u_qk_dot_product/attention_score[0] (qk_dot_product)
+                                                          0.00       0.00 r
+  attention_score[0] (out)                                0.00       0.00 r
+  data arrival time                                                  0.00
+
+  clock clk (rise edge)                                  10.00      10.00
+  clock network delay (ideal)                             0.00      10.00
+  output external delay                                   0.00      10.00
+  data required time                                                10.00
+  --------------------------------------------------------------------------
+  data required time                                                10.00
+  data arrival time                                                  0.00
+  --------------------------------------------------------------------------
+  slack (MET)                                                       10.00
+
+
+1
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:50:51 2026
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: attention_score[20]
+            (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]/CK (DFFRX4)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]/Q (DFFRX4)
+                                                          0.47       0.47 f
+  u_qk_pair_streamer/u_pattern_controller/q_idx[0] (pattern_controller)
+                                                          0.00       0.47 f
+  u_qk_pair_streamer/q_idx[0] (qk_pair_streamer)          0.00       0.47 f
+  u_qk_dot_product/q_idx[0] (qk_dot_product)              0.00       0.47 f
+  u_qk_dot_product/add_23_2/A[0] (qk_dot_product_DW01_inc_0)
+                                                          0.00       0.47 f
+  u_qk_dot_product/add_23_2/U1/Y (CLKINVX1)               0.11       0.58 r
+  u_qk_dot_product/add_23_2/U3/Y (NAND2X2)                0.10       0.68 f
+  u_qk_dot_product/add_23_2/U5/Y (NAND2X6)                0.09       0.77 r
+  u_qk_dot_product/add_23_2/SUM[1] (qk_dot_product_DW01_inc_0)
+                                                          0.00       0.77 r
+  u_qk_dot_product/add_23_2_I2/A[1] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       0.77 r
+  u_qk_dot_product/add_23_2_I2/U9/Y (INVXL)               0.05       0.82 f
+  u_qk_dot_product/add_23_2_I2/U6/Y (NAND2XL)             0.09       0.90 r
+  u_qk_dot_product/add_23_2_I2/U7/Y (NAND2X1)             0.10       1.00 f
+  u_qk_dot_product/add_23_2_I2/SUM[1] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       1.00 f
+  u_qk_dot_product/mult_25_I2/a[1] (qk_dot_product_DW_mult_uns_0)
+                                                          0.00       1.00 f
+  u_qk_dot_product/mult_25_I2/U255/Y (INVX3)              0.12       1.12 r
+  u_qk_dot_product/mult_25_I2/U280/Y (XOR2X1)             0.38       1.50 r
+  u_qk_dot_product/mult_25_I2/U314/Y (NAND2X2)            0.22       1.72 f
+  u_qk_dot_product/mult_25_I2/U414/Y (OAI32X1)            0.17       1.89 r
+  u_qk_dot_product/mult_25_I2/U291/S (ADDHXL)             0.20       2.09 r
+  u_qk_dot_product/mult_25_I2/U268/S (ADDFXL)             0.59       2.68 f
+  u_qk_dot_product/mult_25_I2/product[3] (qk_dot_product_DW_mult_uns_0)
+                                                          0.00       2.68 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/B[3] (qk_dot_product_DW01_add_2_DW01_add_5)
+                                                          0.00       2.68 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/U1_3/S (ADDFXL)
+                                                          0.67       3.35 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/SUM[3] (qk_dot_product_DW01_add_2_DW01_add_5)
+                                                          0.00       3.35 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/B[3] (qk_dot_product_DW01_add_1_DW01_add_4)
+                                                          0.00       3.35 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_3/CO (ADDFXL)
+                                                          0.64       3.99 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_4/CO (ADDFXL)
+                                                          0.38       4.37 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_5/CO (ADDFXL)
+                                                          0.38       4.74 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_6/CO (ADDFXL)
+                                                          0.38       5.12 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_7/CO (ADDFXL)
+                                                          0.38       5.50 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_8/CO (ADDFXL)
+                                                          0.38       5.87 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_9/CO (ADDFXL)
+                                                          0.38       6.25 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_10/CO (ADDFXL)
+                                                          0.38       6.62 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_11/CO (ADDFXL)
+                                                          0.38       7.00 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_12/CO (ADDFXL)
+                                                          0.38       7.38 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_13/CO (ADDFXL)
+                                                          0.38       7.75 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_14/CO (ADDFXL)
+                                                          0.38       8.13 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_15/CO (ADDFXL)
+                                                          0.38       8.50 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_16/CO (ADDFXL)
+                                                          0.38       8.88 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_17/CO (ADDFXL)
+                                                          0.41       9.29 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1/Y (NAND2XL)
+                                                          0.14       9.43 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U2/Y (NAND3X1)
+                                                          0.11       9.54 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U8/Y (NAND2XL)
+                                                          0.12       9.66 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U11/Y (NAND3X1)
+                                                          0.10       9.76 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_20/S (ADDFX1)
+                                                          0.24       9.99 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/SUM[20] (qk_dot_product_DW01_add_1_DW01_add_4)
+                                                          0.00       9.99 r
+  u_qk_dot_product/attention_score[20] (qk_dot_product)
+                                                          0.00       9.99 r
+  attention_score[20] (out)                               0.00       9.99 r
+  data arrival time                                                  9.99
+
+  clock clk (rise edge)                                  10.00      10.00
+  clock network delay (ideal)                             0.00      10.00
+  output external delay                                   0.00      10.00
+  data required time                                                10.00
+  --------------------------------------------------------------------------
+  data required time                                                10.00
+  data arrival time                                                 -9.99
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.01
+
+
+1
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : sparse_attention_core
+Version: Q-2019.12
+Date   : Wed Jun  3 16:51:47 2026
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: attention_score[20]
+            (output port clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]/CK (DFFRX4)
+                                                          0.00       0.00 r
+  u_qk_pair_streamer/u_pattern_controller/q_idx_reg[0]/Q (DFFRX4)
+                                                          0.47       0.47 f
+  u_qk_pair_streamer/u_pattern_controller/q_idx[0] (pattern_controller)
+                                                          0.00       0.47 f
+  u_qk_pair_streamer/q_idx[0] (qk_pair_streamer)          0.00       0.47 f
+  u_qk_dot_product/q_idx[0] (qk_dot_product)              0.00       0.47 f
+  u_qk_dot_product/add_23_2/A[0] (qk_dot_product_DW01_inc_0)
+                                                          0.00       0.47 f
+  u_qk_dot_product/add_23_2/U1/Y (CLKINVX1)               0.11       0.58 r
+  u_qk_dot_product/add_23_2/U3/Y (NAND2X2)                0.10       0.68 f
+  u_qk_dot_product/add_23_2/U5/Y (NAND2X6)                0.09       0.77 r
+  u_qk_dot_product/add_23_2/SUM[1] (qk_dot_product_DW01_inc_0)
+                                                          0.00       0.77 r
+  u_qk_dot_product/add_23_2_I2/A[1] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       0.77 r
+  u_qk_dot_product/add_23_2_I2/U9/Y (INVXL)               0.05       0.82 f
+  u_qk_dot_product/add_23_2_I2/U6/Y (NAND2XL)             0.09       0.90 r
+  u_qk_dot_product/add_23_2_I2/U7/Y (NAND2X1)             0.10       1.00 f
+  u_qk_dot_product/add_23_2_I2/SUM[1] (qk_dot_product_DW01_inc_1_DW01_inc_5)
+                                                          0.00       1.00 f
+  u_qk_dot_product/mult_25_I2/a[1] (qk_dot_product_DW_mult_uns_0)
+                                                          0.00       1.00 f
+  u_qk_dot_product/mult_25_I2/U255/Y (INVX3)              0.12       1.12 r
+  u_qk_dot_product/mult_25_I2/U280/Y (XOR2X1)             0.38       1.50 r
+  u_qk_dot_product/mult_25_I2/U314/Y (NAND2X2)            0.22       1.72 f
+  u_qk_dot_product/mult_25_I2/U414/Y (OAI32X1)            0.17       1.89 r
+  u_qk_dot_product/mult_25_I2/U291/S (ADDHXL)             0.20       2.09 r
+  u_qk_dot_product/mult_25_I2/U268/S (ADDFXL)             0.59       2.68 f
+  u_qk_dot_product/mult_25_I2/product[3] (qk_dot_product_DW_mult_uns_0)
+                                                          0.00       2.68 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/B[3] (qk_dot_product_DW01_add_2_DW01_add_5)
+                                                          0.00       2.68 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/U1_3/S (ADDFXL)
+                                                          0.67       3.35 f
+  u_qk_dot_product/add_1_root_add_0_root_add_25_I4/SUM[3] (qk_dot_product_DW01_add_2_DW01_add_5)
+                                                          0.00       3.35 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/B[3] (qk_dot_product_DW01_add_1_DW01_add_4)
+                                                          0.00       3.35 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_3/CO (ADDFXL)
+                                                          0.64       3.99 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_4/CO (ADDFXL)
+                                                          0.38       4.37 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_5/CO (ADDFXL)
+                                                          0.38       4.74 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_6/CO (ADDFXL)
+                                                          0.38       5.12 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_7/CO (ADDFXL)
+                                                          0.38       5.50 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_8/CO (ADDFXL)
+                                                          0.38       5.87 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_9/CO (ADDFXL)
+                                                          0.38       6.25 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_10/CO (ADDFXL)
+                                                          0.38       6.62 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_11/CO (ADDFXL)
+                                                          0.38       7.00 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_12/CO (ADDFXL)
+                                                          0.38       7.38 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_13/CO (ADDFXL)
+                                                          0.38       7.75 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_14/CO (ADDFXL)
+                                                          0.38       8.13 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_15/CO (ADDFXL)
+                                                          0.38       8.50 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_16/CO (ADDFXL)
+                                                          0.38       8.88 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_17/CO (ADDFXL)
+                                                          0.41       9.29 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1/Y (NAND2XL)
+                                                          0.14       9.43 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U2/Y (NAND3X1)
+                                                          0.11       9.54 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U8/Y (NAND2XL)
+                                                          0.12       9.66 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U11/Y (NAND3X1)
+                                                          0.10       9.76 f
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/U1_20/S (ADDFX1)
+                                                          0.24       9.99 r
+  u_qk_dot_product/add_0_root_add_0_root_add_25_I4/SUM[20] (qk_dot_product_DW01_add_1_DW01_add_4)
+                                                          0.00       9.99 r
+  u_qk_dot_product/attention_score[20] (qk_dot_product)
+                                                          0.00       9.99 r
+  attention_score[20] (out)                               0.00       9.99 r
+  data arrival time                                                  9.99
+
+  clock clk (rise edge)                                  10.00      10.00
+  clock network delay (ideal)                             0.00      10.00
+  output external delay                                   0.00      10.00
+  data required time                                                10.00
+  --------------------------------------------------------------------------
+  data required time                                                10.00
+  data arrival time                                                 -9.99
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.01
+
+
+1
