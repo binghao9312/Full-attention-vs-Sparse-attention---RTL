@@ -11,7 +11,8 @@ MODE_FULL = "full"
 MODE_SLIDING = "sliding"
 MODE_DILATED = "dilated"
 MODE_SLIDING_GLOBAL = "sliding_global"
-MODES = (MODE_FULL, MODE_SLIDING, MODE_DILATED, MODE_SLIDING_GLOBAL)
+MODE_BUTTERFLY = "butterfly"
+MODES = (MODE_FULL, MODE_SLIDING, MODE_DILATED, MODE_SLIDING_GLOBAL, MODE_BUTTERFLY)
 
 
 @dataclass(frozen=True)
@@ -94,6 +95,16 @@ def generate_pairs(mode: str, cfg: AttentionConfig) -> list[tuple[int, int]]:
                 pairs.append(pair)
         return pairs
 
+    if mode == MODE_BUTTERFLY:
+        stride = 1
+        while stride < cfg.seq_len:
+            for q_idx in range(cfg.seq_len):
+                k_idx = q_idx ^ stride
+                if k_idx < cfg.seq_len:
+                    pairs.append((q_idx, k_idx))
+            stride *= 2
+        return pairs
+
     raise ValueError(f"unsupported mode: {mode}")
 
 
@@ -139,7 +150,7 @@ def main() -> None:
             global_index=args.global_index,
             feature_dim=args.feature_dim,
         )
-
+        print()
         full_count = len(generate_pairs(MODE_FULL, cfg))
         for mode in MODES:
             pairs, runtime_s = benchmark(mode, cfg, args.repeats)

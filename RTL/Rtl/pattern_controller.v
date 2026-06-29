@@ -11,19 +11,22 @@ module pattern_controller #(
     input wire rst_n,
     input wire start,
     input wire [IDX_WIDTH-1:0] cfg_seq_len,
-    input wire [1:0] mode,
+    input wire [2:0] mode,
     output reg done,
     output reg pair_valid,
     output reg [IDX_WIDTH-1:0] q_idx,
-    output reg [IDX_WIDTH-1:0] k_idx
+    output reg [IDX_WIDTH-1:0] k_idx,
+    output reg [1:0] buffer_phase
 );
-    localparam MODE_SLIDING = 2'd1;
-    localparam MODE_DILATED = 2'd2;
-    localparam MODE_SLIDING_GLOBAL = 2'd3;
+    localparam MODE_SLIDING = 3'd1;
+    localparam MODE_DILATED = 3'd2;
+    localparam MODE_SLIDING_GLOBAL = 3'd3;
+    localparam MODE_BUTTERFLY = 3'd4;
 
     localparam PHASE_LOCAL = 2'd0;
     localparam PHASE_COL_GLOBAL = 2'd1;
     localparam PHASE_ROW_GLOBAL = 2'd2;
+    localparam PHASE_BUTTERFLY = 2'd3;
 
     reg active;
     reg done_pending;
@@ -61,6 +64,19 @@ module pattern_controller #(
         end
     endtask
 
+    task advance_butterfly;
+        begin
+            if ((q_state == cfg_seq_len - 1) && (offset >= (cfg_seq_len >> 1))) begin
+                done_pending <= 1'b1;
+            end else if (q_state == cfg_seq_len - 1) begin
+                q_state <= {IDX_WIDTH{1'b0}};
+                offset <= offset << 1;
+            end else begin
+                q_state <= q_state + 1'b1;
+            end
+        end
+    endtask
+
     function is_in_global_block;
         input [IDX_WIDTH-1:0] idx;
         reg [IDX_WIDTH-1:0] idx_block;
@@ -81,6 +97,7 @@ module pattern_controller #(
             pair_valid <= 1'b0;
             q_idx <= {IDX_WIDTH{1'b0}};
             k_idx <= {IDX_WIDTH{1'b0}};
+            buffer_phase <= PHASE_LOCAL;
             q_state <= {IDX_WIDTH{1'b0}};
             k_state <= {IDX_WIDTH{1'b0}};
             offset <= {IDX_WIDTH{1'b0}};
@@ -95,21 +112,24 @@ module pattern_controller #(
             end else if (start && !active) begin
                 active <= 1'b1;
                 done_pending <= 1'b0;
-                phase <= PHASE_LOCAL;
+                phase <= (mode == MODE_BUTTERFLY) ? PHASE_BUTTERFLY : PHASE_LOCAL;
                 q_idx <= {IDX_WIDTH{1'b0}};
                 k_idx <= {IDX_WIDTH{1'b0}};
+                buffer_phase <= PHASE_LOCAL;
                 q_state <= {IDX_WIDTH{1'b0}};
                 k_state <= {IDX_WIDTH{1'b0}};
-                offset <= {IDX_WIDTH{1'b0}};
+                offset <= (mode == MODE_BUTTERFLY) ? {{(IDX_WIDTH-1){1'b0}}, 1'b1} : {IDX_WIDTH{1'b0}};
             end else if (active) begin
                 if (phase == PHASE_LOCAL) begin
                     pair_valid <= 1'b1;
                     q_idx <= q_state;
                     k_idx <= block_start + offset;
+                    buffer_phase <= PHASE_LOCAL;
                     advance_local();
                 end else if (phase == PHASE_COL_GLOBAL) begin
                     q_idx <= q_state;
                     k_idx <= GLOBAL_INDEX;
+                    buffer_phase <= PHASE_COL_GLOBAL;
                     if (!is_in_global_block(q_state)) begin
                         pair_valid <= 1'b1;
                     end
@@ -124,6 +144,7 @@ module pattern_controller #(
                 end else if (phase == PHASE_ROW_GLOBAL) begin
                     q_idx <= q_state;
                     k_idx <= k_state;
+                    buffer_phase <= PHASE_ROW_GLOBAL;
                     if (!is_in_global_block(k_state)) begin
                         pair_valid <= 1'b1;
                     end
@@ -133,6 +154,12 @@ module pattern_controller #(
                     end else begin
                         k_state <= k_state + 1'b1;
                     end
+                end else if (phase == PHASE_BUTTERFLY) begin
+                    pair_valid <= ((q_state ^ offset) < cfg_seq_len);
+                    q_idx <= q_state;
+                    k_idx <= q_state ^ offset;
+                    buffer_phase <= PHASE_BUTTERFLY;
+                    advance_butterfly();
                 end
             end
         end

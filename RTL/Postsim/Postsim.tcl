@@ -1,1 +1,3 @@
-vcs -R -debug_access -full64 -sverilog +v2k +define+POSTSIM ../Rtl/qk_dot_product.v ../Rtl/full_attention_core.v ../Rtl/pattern_controller.v ../Rtl/kv_line_buffer.v ../Rtl/qk_pair_streamer.v ../Rtl/stats_counter.v ../Rtl/sparse_attention_core.v tb.v
+sed 's/qk_dot_/sparse_qk_dot_/g' ../Syn/sparse_attention/sparse_attention_core_syn.v > sparse_attention_core_syn_postsim.v
+sed 's/qk_dot_/sparse_qk_dot_/g' ../Syn/sparse_attention/sparse_attention_core_syn.sdf > sparse_attention_core_syn_postsim.sdf
+vcs -R -full64 -debug_access tb.v ../Syn/full_attention/full_attention_core_syn.v sparse_attention_core_syn_postsim.v -v tsmc13_neg.v +neg_tchk +define+SDF

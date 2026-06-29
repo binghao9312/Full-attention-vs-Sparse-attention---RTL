@@ -18,23 +18,34 @@ module full_attention_core #(
     output reg [COUNT_WIDTH-1:0] pair_count,
     output reg [COUNT_WIDTH-1:0] cycle_count,
     output reg [COUNT_WIDTH-1:0] mac_count,
-    output wire score_valid,
-    output wire [SCORE_WIDTH-1:0] attention_score
+    output reg score_valid,
+    output reg [SCORE_WIDTH-1:0] attention_score
 );
     reg active;
     reg [IDX_WIDTH-1:0] q_state;
     reg [IDX_WIDTH-1:0] k_state;
+    reg done_delay0;
+    reg done_delay1;
+    reg done_delay2;
+    wire score_valid_pipe;
+    wire [IDX_WIDTH-1:0] score_q_idx_pipe;
+    wire [IDX_WIDTH-1:0] score_k_idx_pipe;
+    wire [SCORE_WIDTH-1:0] attention_score_pipe;
 
-    qk_dot_product #(
+    qk_dot_accumulator #(
         .IDX_WIDTH(IDX_WIDTH),
         .FEATURE_DIM(FEATURE_DIM),
         .SCORE_WIDTH(SCORE_WIDTH)
-    ) u_qk_dot_product (
-        .pair_valid(pair_valid),
-        .q_idx(q_idx),
-        .k_idx(k_idx),
-        .score_valid(score_valid),
-        .attention_score(attention_score)
+    ) u_qk_dot_accumulator (
+        .clk(clk),
+        .rst_n(rst_n),
+        .pair_valid(active),
+        .q_idx(q_state),
+        .k_idx(k_state),
+        .score_valid(score_valid_pipe),
+        .score_q_idx(score_q_idx_pipe),
+        .score_k_idx(score_k_idx_pipe),
+        .attention_score(attention_score_pipe)
     );
 
     always @(posedge clk or negedge rst_n) begin
@@ -42,22 +53,39 @@ module full_attention_core #(
             active <= 1'b0;
             done <= 1'b0;
             pair_valid <= 1'b0;
+            score_valid <= 1'b0;
             q_idx <= {IDX_WIDTH{1'b0}};
             k_idx <= {IDX_WIDTH{1'b0}};
+            attention_score <= {SCORE_WIDTH{1'b0}};
             q_state <= {IDX_WIDTH{1'b0}};
             k_state <= {IDX_WIDTH{1'b0}};
+            done_delay0 <= 1'b0;
+            done_delay1 <= 1'b0;
+            done_delay2 <= 1'b0;
             pair_count <= {COUNT_WIDTH{1'b0}};
             cycle_count <= {COUNT_WIDTH{1'b0}};
             mac_count <= {COUNT_WIDTH{1'b0}};
         end 
         else begin
-            done <= 1'b0;
-            pair_valid <= 1'b0;
+            done <= done_delay2;
+            done_delay2 <= done_delay1;
+            done_delay1 <= done_delay0;
+            done_delay0 <= 1'b0;
+            pair_valid <= score_valid_pipe;
+            score_valid <= score_valid_pipe;
+            q_idx <= score_q_idx_pipe;
+            k_idx <= score_k_idx_pipe;
+            attention_score <= attention_score_pipe;
 
             if (start && !active) begin
                 active <= 1'b1;
                 q_idx <= {IDX_WIDTH{1'b0}};
                 k_idx <= {IDX_WIDTH{1'b0}};
+                attention_score <= {SCORE_WIDTH{1'b0}};
+                done <= 1'b0;
+                done_delay0 <= 1'b0;
+                done_delay1 <= 1'b0;
+                done_delay2 <= 1'b0;
                 q_state <= {IDX_WIDTH{1'b0}};
                 k_state <= {IDX_WIDTH{1'b0}};
                 pair_count <= {COUNT_WIDTH{1'b0}};
@@ -65,16 +93,13 @@ module full_attention_core #(
                 mac_count <= {COUNT_WIDTH{1'b0}};
             end 
             else if (active) begin
-                pair_valid <= 1'b1;
-                q_idx <= q_state;
-                k_idx <= k_state;
                 pair_count <= pair_count + 1'b1;
                 cycle_count <= cycle_count + 1'b1;
                 mac_count <= mac_count + FEATURE_DIM;
 
                 if ((q_state == cfg_seq_len - 1) && (k_state == cfg_seq_len - 1)) begin
                     active <= 1'b0;
-                    done <= 1'b1;
+                    done_delay0 <= 1'b1;
                 end 
                 else if (k_state == cfg_seq_len - 1) begin
                     q_state <= q_state + 1'b1;

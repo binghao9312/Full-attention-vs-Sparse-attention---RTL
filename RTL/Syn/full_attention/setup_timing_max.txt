@@ -307,3 +307,92 @@ Wire Load Model Mode: top
 
 
 1
+Information: Updating design information... (UID-85)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : full_attention_core
+Version: Q-2019.12
+Date   : Thu Jun  4 16:20:41 2026
+****************************************
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: q_state_reg[2]
+              (rising edge-triggered flip-flop clocked by clk)
+  Endpoint: attention_score_reg[21]
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock clk (rise edge)                                   0.00       0.00
+  clock network delay (ideal)                             0.00       0.00
+  q_state_reg[2]/CK (DFFRX2)                              0.00       0.00 r
+  q_state_reg[2]/Q (DFFRX2)                               0.57       0.57 f
+  u_qk_dot_product/q_idx[2] (qk_dot_product)              0.00       0.57 f
+  u_qk_dot_product/U39/Y (XOR2X1)                         0.19       0.76 r
+  u_qk_dot_product/mult_26_I4/a[3] (qk_dot_product_DW_mult_uns_0)
+                                                          0.00       0.76 r
+  u_qk_dot_product/mult_26_I4/U335/Y (CLKINVX1)           0.26       1.03 f
+  u_qk_dot_product/mult_26_I4/U252/Y (XOR2X1)             0.36       1.38 f
+  u_qk_dot_product/mult_26_I4/U246/Y (NOR2XL)             0.25       1.63 r
+  u_qk_dot_product/mult_26_I4/U248/S (ADDFX2)             0.49       2.12 f
+  u_qk_dot_product/mult_26_I4/U19/CO (ADDFXL)             0.55       2.68 f
+  u_qk_dot_product/mult_26_I4/U18/CO (ADDFXL)             0.38       3.05 f
+  u_qk_dot_product/mult_26_I4/U319/CO (ADDFXL)            0.38       3.43 f
+  u_qk_dot_product/mult_26_I4/U320/CO (ADDFXL)            0.38       3.80 f
+  u_qk_dot_product/mult_26_I4/U322/CO (ADDFXL)            0.38       4.18 f
+  u_qk_dot_product/mult_26_I4/U14/CO (ADDFXL)             0.38       4.56 f
+  u_qk_dot_product/mult_26_I4/U13/CO (ADDFXL)             0.38       4.93 f
+  u_qk_dot_product/mult_26_I4/U12/CO (ADDFXL)             0.39       5.32 f
+  u_qk_dot_product/mult_26_I4/U257/CO (ADDFX1)            0.28       5.60 f
+  u_qk_dot_product/mult_26_I4/U10/CO (ADDFXL)             0.37       5.97 f
+  u_qk_dot_product/mult_26_I4/U9/CO (ADDFXL)              0.38       6.35 f
+  u_qk_dot_product/mult_26_I4/U8/CO (ADDFXL)              0.38       6.72 f
+  u_qk_dot_product/mult_26_I4/U321/CO (ADDFXL)            0.38       7.10 f
+  u_qk_dot_product/mult_26_I4/U318/S (ADDFXL)             0.37       7.46 r
+  u_qk_dot_product/mult_26_I4/product[17] (qk_dot_product_DW_mult_uns_0)
+                                                          0.00       7.46 r
+  u_qk_dot_product/add_2_root_add_0_root_add_26_I4/B[17] (qk_dot_product_DW01_add_2_DW01_add_3)
+                                                          0.00       7.46 r
+  u_qk_dot_product/add_2_root_add_0_root_add_26_I4/U1_17/S (ADDFXL)
+                                                          0.69       8.16 f
+  u_qk_dot_product/add_2_root_add_0_root_add_26_I4/SUM[17] (qk_dot_product_DW01_add_2_DW01_add_3)
+                                                          0.00       8.16 f
+  u_qk_dot_product/add_0_root_add_0_root_add_26_I4/A[17] (qk_dot_product_DW01_add_1_DW01_add_2)
+                                                          0.00       8.16 f
+  u_qk_dot_product/add_0_root_add_0_root_add_26_I4/U1_17/CO (ADDFHX1)
+                                                          0.42       8.57 f
+  u_qk_dot_product/add_0_root_add_0_root_add_26_I4/U1_18/CO (ADDFXL)
+                                                          0.35       8.92 f
+  u_qk_dot_product/add_0_root_add_0_root_add_26_I4/U1_19/CO (ADDFHX1)
+                                                          0.25       9.17 f
+  u_qk_dot_product/add_0_root_add_0_root_add_26_I4/U1_20/CO (ADDFXL)
+                                                          0.32       9.50 f
+  u_qk_dot_product/add_0_root_add_0_root_add_26_I4/SUM[21] (qk_dot_product_DW01_add_1_DW01_add_2)
+                                                          0.00       9.50 f
+  u_qk_dot_product/attention_score[21] (qk_dot_product)
+                                                          0.00       9.50 f
+  U223/Y (AO22XL)                                         0.29       9.79 f
+  attention_score_reg[21]/D (DFFRX1)                      0.00       9.79 f
+  data arrival time                                                  9.79
+
+  clock clk (rise edge)                                  10.00      10.00
+  clock network delay (ideal)                             0.00      10.00
+  attention_score_reg[21]/CK (DFFRX1)                     0.00      10.00 r
+  library setup time                                     -0.21       9.79
+  data required time                                                 9.79
+  --------------------------------------------------------------------------
+  data required time                                                 9.79
+  data arrival time                                                 -9.79
+  --------------------------------------------------------------------------
+  slack (MET)                                                        0.00
+
+
+1

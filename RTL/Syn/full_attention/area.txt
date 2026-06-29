@@ -88,3 +88,33 @@ Net Interconnect area:      undefined  (No wire load specified)
 Total cell area:                 22998.072598
 Total area:                 undefined
 1
+ 
+****************************************
+Report : area
+Design : full_attention_core
+Version: Q-2019.12
+Date   : Thu Jun  4 16:20:41 2026
+****************************************
+
+Library(s) Used:
+
+    slow (File: /usr/cad/designkit/CBDK_IC_Contest_v2.5/SynopsysDC/db/slow.db)
+
+Number of ports:                          867
+Number of nets:                          2586
+Number of cells:                         1631
+Number of combinational cells:           1426
+Number of sequential cells:               152
+Number of macros/black boxes:               0
+Number of buf/inv:                        150
+Number of references:                      33
+
+Combinational area:              19533.679296
+Buf/Inv area:                      592.392590
+Noncombinational area:            4961.500042
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (No wire load specified)
+
+Total cell area:                 24495.179338
+Total area:                 undefined
+1

@@ -6,6 +6,16 @@ RTL/Presim/simv*
 RTL/Presim/*.fsdb
 RTL/Presim/*.log
 RTL/Presim/ucli.key
+RTL/Postsim/*_postsim.v
+RTL/Postsim/*_postsim.sdf
+RTL/Postsim/csrc/
+RTL/Postsim/simv*
+RTL/Postsim/*.fsdb
+RTL/Postsim/*.log
+RTL/Postsim/ucli.key
+
+# Misplaced flow-output backups from cleanup
+RTL/_misplaced_from_Rtl_*/
 
 # Design Compiler / synthesis outputs and process-related files
 RTL/Syn/**/*.ddc
@@ -13,7 +23,20 @@ RTL/Syn/**/*.sdf
 RTL/Syn/**/*_syn.v
 RTL/Syn/**/*.svf
 RTL/Syn/**/*.log
+RTL/Syn/**/*.out
+RTL/Syn/**/*.bak
+RTL/Syn/**/codex_run_syn.tcl
 RTL/Syn/**/.synopsys_dc.setup
+
+# Local flow rerun helpers/logs
+RTL/run_presim_syn_postsim.csh
+RTL/Rtl/run_presim_syn_postsim.csh
+RTL/Rtl/codex_flow_rerun.log
+RTL/Rtl/.synopsys_dc.setup
 
 # Optional local result dumps
 RES/
+
+# Python bytecode
+__pycache__/
+*.py[cod]

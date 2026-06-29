@@ -6,20 +6,26 @@ module tb_attention_compare;
     localparam DILATION = 2;
     localparam GLOBAL_INDEX = 0;
     localparam IDX_WIDTH = 8;
-    localparam BUFFER_SEL_WIDTH = 2;
+    localparam BUFFER_SEL_WIDTH = 3;
     localparam COUNT_WIDTH = 32;
     localparam FEATURE_DIM = 4;
     localparam SCORE_WIDTH = 32;
+`ifdef SDF
+    localparam SAMPLE_DELAY = 8;
+`else
+    localparam SAMPLE_DELAY = 1;
+`endif
 
-    localparam MODE_SLIDING = 2'd1;
-    localparam MODE_DILATED = 2'd2;
-    localparam MODE_SLIDING_GLOBAL = 2'd3;
+    localparam MODE_SLIDING = 3'd1;
+    localparam MODE_DILATED = 3'd2;
+    localparam MODE_SLIDING_GLOBAL = 3'd3;
+    localparam MODE_BUTTERFLY = 3'd4;
 
     reg clk;
     reg rst_n;
     reg full_start;
     reg sparse_start;
-    reg [1:0] sparse_mode;
+    reg [2:0] sparse_mode;
     reg [IDX_WIDTH-1:0] current_seq_len;
 
     wire full_done;
@@ -39,11 +45,14 @@ module tb_attention_compare;
     wire [BUFFER_SEL_WIDTH-1:0] buffer_select;
     wire buffer_load;
     wire evict_valid;
+    wire [IDX_WIDTH-1:0] buffer_dout;
     wire [COUNT_WIDTH-1:0] sparse_pair_count;
     wire [COUNT_WIDTH-1:0] sparse_cycle_count;
     wire [COUNT_WIDTH-1:0] sparse_mac_count;
     wire sparse_score_valid;
     wire [SCORE_WIDTH-1:0] sparse_attention_score;
+    wire [1:0] buffer_phase;
+    wire [1:0] buffer_bank;
 
     integer errors;
     integer case_errors;
@@ -95,9 +104,12 @@ module tb_attention_compare;
         .pair_valid(sparse_pair_valid),
         .q_idx(sparse_q_idx),
         .k_idx(sparse_k_idx),
+        .buffer_phase(buffer_phase),
+        .buffer_bank(buffer_bank),
         .buffer_select(buffer_select),
         .buffer_load(buffer_load),
         .evict_valid(evict_valid),
+        .buffer_dout(buffer_dout),
         .pair_count(sparse_pair_count),
         .cycle_count(sparse_cycle_count),
         .mac_count(sparse_mac_count),
@@ -215,6 +227,23 @@ module tb_attention_compare;
         end
     endtask
 
+    task build_butterfly_expected;
+        integer q;
+        integer k;
+        integer stride;
+        begin
+            expected_count = 0;
+            for (stride = 1; stride < current_seq_len; stride = stride * 2) begin
+                for (q = 0; q < current_seq_len; q = q + 1) begin
+                    k = q ^ stride;
+                    if (k < current_seq_len) begin
+                        add_expected(q, k);
+                    end
+                end
+            end
+        end
+    endtask
+
     task check_pair;
         input [IDX_WIDTH-1:0] q_actual;
         input [IDX_WIDTH-1:0] k_actual;
@@ -284,7 +313,7 @@ module tb_attention_compare;
             full_start = 1'b0;
             while (!full_done) begin
                 @(posedge clk);
-                #1;
+                #SAMPLE_DELAY;
                 if (full_pair_valid) begin
                     check_pair(full_q_idx, full_k_idx, full_attention_score, "full");
                 end
@@ -301,7 +330,7 @@ module tb_attention_compare;
     endtask
 
     task run_sparse_case;
-        input [1:0] mode;
+        input [2:0] mode;
         input [127:0] label;
         real reduction;
         begin
@@ -310,8 +339,10 @@ module tb_attention_compare;
                 build_sliding_expected();
             end else if (mode == MODE_DILATED) begin
                 build_dilated_expected();
-            end else begin
+            end else if (mode == MODE_SLIDING_GLOBAL) begin
                 build_sliding_global_expected();
+            end else begin
+                build_butterfly_expected();
             end
 
             observed_count = 0;
@@ -323,7 +354,7 @@ module tb_attention_compare;
 
             while (!sparse_done) begin
                 @(posedge clk);
-                #1;
+                #SAMPLE_DELAY;
                 if (sparse_pair_valid) begin
                     check_pair(sparse_q_idx, sparse_k_idx, sparse_attention_score, label);
                 end
@@ -372,14 +403,36 @@ module tb_attention_compare;
         end
     endtask
 
+    task print_seq_block;
+        input integer seq_len_value;
+        begin
+            $display("");
+            $display("===============================================================================================");
+            $display("SEQ_LEN_BLOCK %0d", seq_len_value);
+            $display("===============================================================================================");
+        end
+    endtask
+
+    task idle_block;
+        input integer cycle_num;
+        begin
+            full_start = 1'b0;
+            sparse_start = 1'b0;
+            repeat (cycle_num) @(posedge clk);
+        end
+    endtask
+
     task run_length_case;
         input integer seq_len_value;
         begin
+            idle_block(4);
             current_seq_len = seq_len_value;
+            print_seq_block(seq_len_value);
             run_full_case();
             run_sparse_case(MODE_SLIDING, "sliding");
             run_sparse_case(MODE_DILATED, "dilated");
             run_sparse_case(MODE_SLIDING_GLOBAL, "sliding_global");
+            run_sparse_case(MODE_BUTTERFLY, "butterfly");
         end
     endtask
 
