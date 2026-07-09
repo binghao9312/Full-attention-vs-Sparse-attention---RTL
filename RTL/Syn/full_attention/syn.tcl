@@ -1,7 +1,6 @@
 set NAME "full_attention_core"
 
 set RTL_FILE [list \
-    "../../Rtl/qk_dot_product.v" \
     "../../Rtl/qk_dot_accumulator.v" \
     "../../Rtl/full_attention_core.v" \
 ]

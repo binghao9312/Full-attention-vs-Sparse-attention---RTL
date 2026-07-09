@@ -9,6 +9,8 @@ module tb_attention_compare;
     localparam BUFFER_SEL_WIDTH = 3;
     localparam COUNT_WIDTH = 32;
     localparam FEATURE_DIM = 4;
+    localparam FEATURE_IDX_WIDTH = 2;
+    localparam DATA_WIDTH = 8;
     localparam SCORE_WIDTH = 32;
 `ifdef SDF
     localparam SAMPLE_DELAY = 8;
@@ -27,6 +29,11 @@ module tb_attention_compare;
     reg sparse_start;
     reg [2:0] sparse_mode;
     reg [IDX_WIDTH-1:0] current_seq_len;
+    reg qkv_we;
+    reg [1:0] qkv_sel;
+    reg [IDX_WIDTH-1:0] qkv_token_idx;
+    reg [FEATURE_IDX_WIDTH-1:0] qkv_feature_idx;
+    reg [DATA_WIDTH-1:0] qkv_data_in;
 
     wire full_done;
     wire full_pair_valid;
@@ -61,12 +68,16 @@ module tb_attention_compare;
     integer i;
     integer q_expected [0:20000];
     integer k_expected [0:20000];
+    integer q_feature_expected [0:MAX_SEQ_LEN*FEATURE_DIM-1];
+    integer k_feature_expected [0:MAX_SEQ_LEN*FEATURE_DIM-1];
+    integer v_feature_expected [0:MAX_SEQ_LEN*FEATURE_DIM-1];
 
     full_attention_core #(
         .SEQ_LEN(MAX_SEQ_LEN),
         .IDX_WIDTH(IDX_WIDTH),
         .COUNT_WIDTH(COUNT_WIDTH),
         .FEATURE_DIM(FEATURE_DIM),
+        .DATA_WIDTH(DATA_WIDTH),
         .SCORE_WIDTH(SCORE_WIDTH)
     ) u_full_attention_core (
         .clk(clk),
@@ -93,6 +104,8 @@ module tb_attention_compare;
         .BUFFER_SEL_WIDTH(BUFFER_SEL_WIDTH),
         .COUNT_WIDTH(COUNT_WIDTH),
         .FEATURE_DIM(FEATURE_DIM),
+        .FEATURE_IDX_WIDTH(FEATURE_IDX_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH),
         .SCORE_WIDTH(SCORE_WIDTH)
     ) u_sparse_attention_core (
         .clk(clk),
@@ -100,6 +113,11 @@ module tb_attention_compare;
         .start(sparse_start),
         .cfg_seq_len(current_seq_len),
         .mode(sparse_mode),
+        .qkv_we(qkv_we),
+        .qkv_sel(qkv_sel),
+        .qkv_token_idx(qkv_token_idx),
+        .qkv_feature_idx(qkv_feature_idx),
+        .qkv_data_in(qkv_data_in),
         .done(sparse_done),
         .pair_valid(sparse_pair_valid),
         .q_idx(sparse_q_idx),
@@ -137,9 +155,86 @@ module tb_attention_compare;
             sparse_start = 1'b0;
             sparse_mode = MODE_SLIDING;
             current_seq_len = 16;
+            qkv_we = 1'b0;
+            qkv_sel = 2'd0;
+            qkv_token_idx = {IDX_WIDTH{1'b0}};
+            qkv_feature_idx = {FEATURE_IDX_WIDTH{1'b0}};
+            qkv_data_in = {DATA_WIDTH{1'b0}};
             repeat (4) @(posedge clk);
             rst_n = 1'b1;
             repeat (2) @(posedge clk);
+        end
+    endtask
+
+    function integer feature_flat_index;
+        input integer token;
+        input integer feature;
+        begin
+            feature_flat_index = (token * FEATURE_DIM) + feature;
+        end
+    endfunction
+
+    function integer q_feature_value;
+        input integer token;
+        input integer feature;
+        begin
+            q_feature_value = ((token + 1) * (feature + 2)) % 251;
+        end
+    endfunction
+
+    function integer k_feature_value;
+        input integer token;
+        input integer feature;
+        begin
+            k_feature_value = ((token + 3) * (feature + 1)) % 251;
+        end
+    endfunction
+
+    function integer v_feature_value;
+        input integer token;
+        input integer feature;
+        begin
+            v_feature_value = (token + (feature * 7) + 5) % 251;
+        end
+    endfunction
+
+    task write_qkv_feature;
+        input [1:0] sel;
+        input integer token;
+        input integer feature;
+        input integer value;
+        begin
+            @(negedge clk);
+            qkv_we = 1'b1;
+            qkv_sel = sel;
+            qkv_token_idx = token;
+            qkv_feature_idx = feature;
+            qkv_data_in = value;
+            @(negedge clk);
+            qkv_we = 1'b0;
+            qkv_sel = 2'd0;
+            qkv_token_idx = {IDX_WIDTH{1'b0}};
+            qkv_feature_idx = {FEATURE_IDX_WIDTH{1'b0}};
+            qkv_data_in = {DATA_WIDTH{1'b0}};
+        end
+    endtask
+
+    task load_qkv_features;
+        integer token;
+        integer feature;
+        integer flat_idx;
+        begin
+            for (token = 0; token < MAX_SEQ_LEN; token = token + 1) begin
+                for (feature = 0; feature < FEATURE_DIM; feature = feature + 1) begin
+                    flat_idx = feature_flat_index(token, feature);
+                    q_feature_expected[flat_idx] = q_feature_value(token, feature);
+                    k_feature_expected[flat_idx] = k_feature_value(token, feature);
+                    v_feature_expected[flat_idx] = v_feature_value(token, feature);
+                    write_qkv_feature(2'd0, token, feature, q_feature_expected[flat_idx]);
+                    write_qkv_feature(2'd1, token, feature, k_feature_expected[flat_idx]);
+                    write_qkv_feature(2'd2, token, feature, v_feature_expected[flat_idx]);
+                end
+            end
         end
     endtask
 
@@ -251,7 +346,11 @@ module tb_attention_compare;
         input [127:0] label;
         reg [SCORE_WIDTH-1:0] score_expected;
         begin
-            score_expected = expected_qk_score(q_actual, k_actual);
+            if (label == "full") begin
+                score_expected = expected_full_qk_score(q_actual, k_actual);
+            end else begin
+                score_expected = expected_sparse_qk_score(q_actual, k_actual);
+            end
             if (observed_count >= expected_count) begin
                 $display("ERROR,%0s,extra_pair,%0d,%0d", label, q_actual, k_actual);
                 errors = errors + 1;
@@ -286,18 +385,34 @@ module tb_attention_compare;
         end
     endtask
 
-    function [SCORE_WIDTH-1:0] expected_qk_score;
+    function [SCORE_WIDTH-1:0] expected_full_qk_score;
         input [IDX_WIDTH-1:0] q;
         input [IDX_WIDTH-1:0] k;
         integer d;
         reg [SCORE_WIDTH-1:0] q_value;
         reg [SCORE_WIDTH-1:0] k_value;
         begin
-            expected_qk_score = {SCORE_WIDTH{1'b0}};
+            expected_full_qk_score = {SCORE_WIDTH{1'b0}};
             for (d = 0; d < FEATURE_DIM; d = d + 1) begin
                 q_value = q + d + 1;
                 k_value = k + d + 2;
-                expected_qk_score = expected_qk_score + (q_value * k_value);
+                expected_full_qk_score = expected_full_qk_score + (q_value * k_value);
+            end
+        end
+    endfunction
+
+    function [SCORE_WIDTH-1:0] expected_sparse_qk_score;
+        input [IDX_WIDTH-1:0] q;
+        input [IDX_WIDTH-1:0] k;
+        integer d;
+        reg [SCORE_WIDTH-1:0] q_value;
+        reg [SCORE_WIDTH-1:0] k_value;
+        begin
+            expected_sparse_qk_score = {SCORE_WIDTH{1'b0}};
+            for (d = 0; d < FEATURE_DIM; d = d + 1) begin
+                q_value = q_feature_expected[feature_flat_index(q, d)];
+                k_value = k_feature_expected[feature_flat_index(k, d)];
+                expected_sparse_qk_score = expected_sparse_qk_score + (q_value * k_value);
             end
         end
     endfunction
@@ -439,6 +554,7 @@ module tb_attention_compare;
     initial begin
         errors = 0;
         reset_dut();
+        load_qkv_features();
 
         print_header();
         run_length_case(16);

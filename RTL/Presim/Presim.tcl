@@ -1,1 +1,1 @@
-vcs -R -debug_access -full64 -sverilog +v2k ../Rtl/qk_dot_product.v ../Rtl/qk_dot_accumulator.v ../Rtl/full_attention_core.v ../Rtl/pattern_controller.v ../Rtl/KV_LBV2.v ../Rtl/qk_pair_streamer.v ../Rtl/stats_counter.v ../Rtl/sparse_attention_core.v tb.v
+vcs -R -debug_access -full64 -sverilog +v2k ../Rtl/qk_dot_accumulator.v ../Rtl/qkv_feature_mem.v ../Rtl/full_attention_core.v ../Rtl/pattern_controller.v ../Rtl/KV_LBV2.v ../Rtl/qk_pair_streamer.v ../Rtl/stats_counter.v ../Rtl/sparse_attention_core.v tb.v

@@ -3,6 +3,7 @@
 module qk_dot_accumulator #(
     parameter IDX_WIDTH = 8,
     parameter FEATURE_DIM = 4,
+    parameter DATA_WIDTH = 8,
     parameter SCORE_WIDTH = 32
 ) (
     input wire clk,
@@ -10,6 +11,8 @@ module qk_dot_accumulator #(
     input wire pair_valid,
     input wire [IDX_WIDTH-1:0] q_idx,
     input wire [IDX_WIDTH-1:0] k_idx,
+    input wire [FEATURE_DIM*DATA_WIDTH-1:0] q_feature_vector,
+    input wire [FEATURE_DIM*DATA_WIDTH-1:0] k_feature_vector,
     output reg score_valid,
     output reg [IDX_WIDTH-1:0] score_q_idx,
     output reg [IDX_WIDTH-1:0] score_k_idx,
@@ -18,11 +21,11 @@ module qk_dot_accumulator #(
     genvar d;
     integer acc_idx;
     wire [SCORE_WIDTH-1:0] product [0:FEATURE_DIM-1];
-    wire [FEATURE_DIM-1:0] product_valid;
-    localparam VALUE_WIDTH = IDX_WIDTH + 4;
     reg stage0_valid;
     reg [IDX_WIDTH-1:0] stage0_q_idx;
     reg [IDX_WIDTH-1:0] stage0_k_idx;
+    reg [FEATURE_DIM*DATA_WIDTH-1:0] stage0_q_feature_vector;
+    reg [FEATURE_DIM*DATA_WIDTH-1:0] stage0_k_feature_vector;
     reg stage1_valid;
     reg [IDX_WIDTH-1:0] stage1_q_idx;
     reg [IDX_WIDTH-1:0] stage1_k_idx;
@@ -31,13 +34,12 @@ module qk_dot_accumulator #(
 
     generate
         for (d = 0; d < FEATURE_DIM; d = d + 1) begin : gen_dot_lane
-            wire [VALUE_WIDTH-1:0] q_value;
-            wire [VALUE_WIDTH-1:0] k_value;
+            wire [DATA_WIDTH-1:0] q_value;
+            wire [DATA_WIDTH-1:0] k_value;
 
-            assign q_value = stage0_q_idx + d + 1;
-            assign k_value = stage0_k_idx + d + 2;
+            assign q_value = stage0_q_feature_vector[d*DATA_WIDTH +: DATA_WIDTH];
+            assign k_value = stage0_k_feature_vector[d*DATA_WIDTH +: DATA_WIDTH];
             assign product[d] = q_value * k_value;
-            assign product_valid[d] = stage0_valid;
         end
     endgenerate
 
@@ -53,6 +55,8 @@ module qk_dot_accumulator #(
             stage0_valid <= 1'b0;
             stage0_q_idx <= {IDX_WIDTH{1'b0}};
             stage0_k_idx <= {IDX_WIDTH{1'b0}};
+            stage0_q_feature_vector <= {FEATURE_DIM*DATA_WIDTH{1'b0}};
+            stage0_k_feature_vector <= {FEATURE_DIM*DATA_WIDTH{1'b0}};
             stage1_valid <= 1'b0;
             stage1_q_idx <= {IDX_WIDTH{1'b0}};
             stage1_k_idx <= {IDX_WIDTH{1'b0}};
@@ -67,6 +71,8 @@ module qk_dot_accumulator #(
             stage0_valid <= pair_valid;
             stage0_q_idx <= q_idx;
             stage0_k_idx <= k_idx;
+            stage0_q_feature_vector <= q_feature_vector;
+            stage0_k_feature_vector <= k_feature_vector;
 
             stage1_valid <= stage0_valid;
             stage1_q_idx <= stage0_q_idx;

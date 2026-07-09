@@ -1,8 +1,8 @@
 set NAME "sparse_attention_core"
 
 set RTL_FILE [list \
-    "../../Rtl/qk_dot_product.v" \
     "../../Rtl/qk_dot_accumulator.v" \
+    "../../Rtl/qkv_feature_mem.v" \
     "../../Rtl/pattern_controller.v" \
     "../../Rtl/KV_LBV2.v" \
     "../../Rtl/qk_pair_streamer.v" \

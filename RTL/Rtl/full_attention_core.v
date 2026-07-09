@@ -5,6 +5,7 @@ module full_attention_core #(
     parameter IDX_WIDTH = 8,
     parameter COUNT_WIDTH = 32,
     parameter FEATURE_DIM = 4,
+    parameter DATA_WIDTH = 8,
     parameter SCORE_WIDTH = 32
 ) (
     input wire clk,
@@ -31,10 +32,23 @@ module full_attention_core #(
     wire [IDX_WIDTH-1:0] score_q_idx_pipe;
     wire [IDX_WIDTH-1:0] score_k_idx_pipe;
     wire [SCORE_WIDTH-1:0] attention_score_pipe;
+    wire [FEATURE_DIM*DATA_WIDTH-1:0] q_feature_vector;
+    wire [FEATURE_DIM*DATA_WIDTH-1:0] k_feature_vector;
+    genvar feature_idx;
+
+    generate
+        for (feature_idx = 0; feature_idx < FEATURE_DIM; feature_idx = feature_idx + 1) begin : gen_full_feature_vector
+            assign q_feature_vector[feature_idx*DATA_WIDTH +: DATA_WIDTH] =
+                q_state + feature_idx + 1;
+            assign k_feature_vector[feature_idx*DATA_WIDTH +: DATA_WIDTH] =
+                k_state + feature_idx + 2;
+        end
+    endgenerate
 
     qk_dot_accumulator #(
         .IDX_WIDTH(IDX_WIDTH),
         .FEATURE_DIM(FEATURE_DIM),
+        .DATA_WIDTH(DATA_WIDTH),
         .SCORE_WIDTH(SCORE_WIDTH)
     ) u_qk_dot_accumulator (
         .clk(clk),
@@ -42,6 +56,8 @@ module full_attention_core #(
         .pair_valid(active),
         .q_idx(q_state),
         .k_idx(k_state),
+        .q_feature_vector(q_feature_vector),
+        .k_feature_vector(k_feature_vector),
         .score_valid(score_valid_pipe),
         .score_q_idx(score_q_idx_pipe),
         .score_k_idx(score_k_idx_pipe),

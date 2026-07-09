@@ -9,6 +9,8 @@ module sparse_attention_core #(
     parameter BUFFER_SEL_WIDTH = 3,
     parameter COUNT_WIDTH = 32,
     parameter FEATURE_DIM = 4,
+    parameter FEATURE_IDX_WIDTH = 2,
+    parameter DATA_WIDTH = 8,
     parameter SCORE_WIDTH = 32
 ) (
     input wire clk,
@@ -16,6 +18,11 @@ module sparse_attention_core #(
     input wire start,
     input wire [IDX_WIDTH-1:0] cfg_seq_len,
     input wire [2:0] mode,
+    input wire qkv_we,
+    input wire [1:0] qkv_sel,
+    input wire [IDX_WIDTH-1:0] qkv_token_idx,
+    input wire [FEATURE_IDX_WIDTH-1:0] qkv_feature_idx,
+    input wire [DATA_WIDTH-1:0] qkv_data_in,
     output reg done,
     output reg pair_valid,
     output reg [IDX_WIDTH-1:0] q_idx,
@@ -42,6 +49,9 @@ module sparse_attention_core #(
     wire [IDX_WIDTH-1:0] score_q_idx_pipe;
     wire [IDX_WIDTH-1:0] score_k_idx_pipe;
     wire [SCORE_WIDTH-1:0] attention_score_pipe;
+    wire [FEATURE_DIM*DATA_WIDTH-1:0] q_feature_vector;
+    wire [FEATURE_DIM*DATA_WIDTH-1:0] k_feature_vector;
+    wire [FEATURE_DIM*DATA_WIDTH-1:0] v_feature_vector;
 
     qk_pair_streamer #(
         .SEQ_LEN(SEQ_LEN),
@@ -82,9 +92,31 @@ module sparse_attention_core #(
         .mac_count(mac_count)
     );
 
+    qkv_feature_mem #(
+        .SEQ_LEN(SEQ_LEN),
+        .IDX_WIDTH(IDX_WIDTH),
+        .FEATURE_DIM(FEATURE_DIM),
+        .FEATURE_IDX_WIDTH(FEATURE_IDX_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH)
+    ) u_qkv_feature_mem (
+        .clk(clk),
+        .qkv_we(qkv_we),
+        .qkv_sel(qkv_sel),
+        .qkv_token_idx(qkv_token_idx),
+        .qkv_feature_idx(qkv_feature_idx),
+        .qkv_data_in(qkv_data_in),
+        .q_read_idx(raw_q_idx),
+        .k_read_idx(raw_k_idx),
+        .v_read_idx(raw_k_idx),
+        .q_feature_vector(q_feature_vector),
+        .k_feature_vector(k_feature_vector),
+        .v_feature_vector(v_feature_vector)
+    );
+
     qk_dot_accumulator #(
         .IDX_WIDTH(IDX_WIDTH),
         .FEATURE_DIM(FEATURE_DIM),
+        .DATA_WIDTH(DATA_WIDTH),
         .SCORE_WIDTH(SCORE_WIDTH)
     ) u_qk_dot_accumulator (
         .clk(clk),
@@ -92,6 +124,8 @@ module sparse_attention_core #(
         .pair_valid(raw_pair_valid),
         .q_idx(raw_q_idx),
         .k_idx(raw_k_idx),
+        .q_feature_vector(q_feature_vector),
+        .k_feature_vector(k_feature_vector),
         .score_valid(score_valid_pipe),
         .score_q_idx(score_q_idx_pipe),
         .score_k_idx(score_k_idx_pipe),
