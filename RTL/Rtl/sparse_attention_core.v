@@ -16,6 +16,7 @@ module sparse_attention_core #(
     input wire clk,
     input wire rst_n,
     input wire start,
+    input wire score_ready,
     input wire [IDX_WIDTH-1:0] cfg_seq_len,
     input wire [2:0] mode,
     input wire qkv_we,
@@ -65,6 +66,7 @@ module sparse_attention_core #(
         .clk(clk),
         .rst_n(rst_n),
         .start(start),
+        .advance_ready(score_ready),
         .cfg_seq_len(cfg_seq_len),
         .mode(mode),
         .done(raw_done),
@@ -121,6 +123,7 @@ module sparse_attention_core #(
     ) u_qk_dot_accumulator (
         .clk(clk),
         .rst_n(rst_n),
+        .advance_ready(score_ready),
         .pair_valid(raw_pair_valid),
         .q_idx(raw_q_idx),
         .k_idx(raw_k_idx),
@@ -144,14 +147,16 @@ module sparse_attention_core #(
             done_delay1 <= 1'b0;
         end
         else begin
-            done <= done_delay1;
-            done_delay1 <= done_delay0;
-            done_delay0 <= raw_done;
-            pair_valid <= score_valid_pipe;
-            score_valid <= score_valid_pipe;
-            q_idx <= score_q_idx_pipe;
-            k_idx <= score_k_idx_pipe;
-            attention_score <= attention_score_pipe;
+            if (score_ready) begin
+                done <= done_delay1;
+                done_delay1 <= done_delay0;
+                done_delay0 <= raw_done;
+                pair_valid <= score_valid_pipe;
+                score_valid <= score_valid_pipe;
+                q_idx <= score_q_idx_pipe;
+                k_idx <= score_k_idx_pipe;
+                attention_score <= attention_score_pipe;
+            end
 
             if (start) begin
                 done <= 1'b0;

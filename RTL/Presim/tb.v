@@ -111,6 +111,7 @@ module tb_attention_compare;
         .clk(clk),
         .rst_n(rst_n),
         .start(sparse_start),
+        .score_ready(1'b1),
         .cfg_seq_len(current_seq_len),
         .mode(sparse_mode),
         .qkv_we(qkv_we),

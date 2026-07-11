@@ -8,6 +8,7 @@ module qk_dot_accumulator #(
 ) (
     input wire clk,
     input wire rst_n,
+    input wire advance_ready,
     input wire pair_valid,
     input wire [IDX_WIDTH-1:0] q_idx,
     input wire [IDX_WIDTH-1:0] k_idx,
@@ -67,7 +68,7 @@ module qk_dot_accumulator #(
             for (acc_idx = 0; acc_idx < FEATURE_DIM; acc_idx = acc_idx + 1) begin
                 product_reg[acc_idx] <= {SCORE_WIDTH{1'b0}};
             end
-        end else begin
+        end else if (advance_ready) begin
             stage0_valid <= pair_valid;
             stage0_q_idx <= q_idx;
             stage0_k_idx <= k_idx;

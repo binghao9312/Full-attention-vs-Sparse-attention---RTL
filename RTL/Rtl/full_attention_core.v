@@ -53,6 +53,7 @@ module full_attention_core #(
     ) u_qk_dot_accumulator (
         .clk(clk),
         .rst_n(rst_n),
+        .advance_ready(1'b1),
         .pair_valid(active),
         .q_idx(q_state),
         .k_idx(k_state),

@@ -10,6 +10,7 @@ module pattern_controller #(
     input wire clk,
     input wire rst_n,
     input wire start,
+    input wire advance_ready,
     input wire [IDX_WIDTH-1:0] cfg_seq_len,
     input wire [2:0] mode,
     output reg done,
@@ -105,7 +106,7 @@ module pattern_controller #(
             done <= 1'b0;
             pair_valid <= 1'b0;
 
-            if (done_pending) begin
+            if (done_pending && advance_ready) begin
                 active <= 1'b0;
                 done_pending <= 1'b0;
                 done <= 1'b1;
@@ -119,7 +120,7 @@ module pattern_controller #(
                 q_state <= {IDX_WIDTH{1'b0}};
                 k_state <= {IDX_WIDTH{1'b0}};
                 offset <= (mode == MODE_BUTTERFLY) ? {{(IDX_WIDTH-1){1'b0}}, 1'b1} : {IDX_WIDTH{1'b0}};
-            end else if (active) begin
+            end else if (active && advance_ready) begin
                 if (phase == PHASE_LOCAL) begin
                     pair_valid <= 1'b1;
                     q_idx <= q_state;

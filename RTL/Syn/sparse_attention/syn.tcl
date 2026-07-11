@@ -11,12 +11,16 @@ set RTL_FILE [list \
 ]
 set SDC_FILE   "${NAME}.sdc"
 set WRITE_NAME "${NAME}_syn"
+set ELAB_NAME  "${NAME}_SEQ_LEN128"
 
 source .synopsys_dc.setup
-read_verilog ${RTL_FILE}
-
-current_design ${NAME}
-link
+analyze -format verilog ${RTL_FILE}
+elaborate ${NAME} -parameters "SEQ_LEN=128"
+current_design ${ELAB_NAME}
+if {![link]} {
+    echo "ERROR: Failed to resolve all design references."
+    exit 1
+}
 source ${SDC_FILE}
 set_fix_multiple_port_nets -all -buffer_constants [get_designs *]
 set verilogout_no_tri true
