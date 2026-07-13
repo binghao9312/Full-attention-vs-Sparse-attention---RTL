@@ -271,7 +271,7 @@
             { id: 'feature_mem', name: 'Feature Memory (特徵記憶體)' },
             { id: 'dot_accum', name: 'Dot Accumulator (點積管線)' },
             { id: 'softmax_context', name: 'Softmax & Context (權重與除法)' },
-            { id: 'stats_fifo', name: 'Stats & Result FIFO' }
+            { id: 'stats_fifo', name: 'Stats & Result FIFO (統計與輸出佇列)' }
         ];
 
         // Tab initialization
@@ -412,9 +412,9 @@
                             <rect x="730" y="235" width="130" height="120" rx="8" fill="rgba(100, 116, 139, 0.05)" stroke="#64748b" stroke-width="2" />
                             <line x1="730" y1="265" x2="860" y2="265" stroke="#64748b" stroke-dasharray="2 2" stroke-width="1" />
                             <text x="740" y="255" fill="#64748b" font-weight="bold" font-size="12" font-family="'Inter', sans-serif">Result FIFO</text>
-                            <text x="740" y="290" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace">> Depth: 32 Words</text>
-                            <text x="740" y="310" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace">> Output Interface</text>
-                            <text x="740" y="330" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace">> AXI-Stream Ready</text>
+                            <text x="740" y="290" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace">> Depth: 16 Words</text>
+                            <text x="740" y="310" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace">> Host Read Interface</text>
+                            <text x="740" y="330" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace">> APB Host Pop Ready</text>
                           </g>
 
                           <!-- Signal Connections -->
@@ -466,7 +466,7 @@
                     </div>
                 `;
 
-                infoArea.innerHTML = `
+                                 infoArea.innerHTML = `
                     <div class="tab-content-wrapper">
                         <div class="info-header">
                             <h2 class="info-title">
@@ -477,18 +477,112 @@
                         <div class="info-body">
                             <p>本晶片設計為<strong>稀疏注意力機制 (Sparse Attention Core)</strong> 的硬體加速器，旨在解決傳統 Full Attention 在長文本下計算量大與記憶體頻寬受限的瓶頸。硬體架構由以下主要部分組成：</p>
                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
-                                <li><strong>Bus & Regs Controller:</strong> 外部 APB 總線控制與配置暫存器，用以設定 Token 長度、稀疏模式與啟動訊號。</li>
+                                <li><strong>Bus & Regs Controller:</strong> 外部 APB-like 總線控制與配置暫存器，用以設定 Token 長度、稀疏模式與啟動訊號。</li>
                                 <li><strong>qk_pair_streamer:</strong> 動態產生需計算 Query/Key Pair 的索引，藉由 Line Buffer 架構快取所需的 Key 指標。</li>
                                 <li><strong>qkv_feature_mem:</strong> 包含三組獨立的 SRAM，分別存放 Q、K、V 特徵向量，支援雙埠讀寫與平行特徵向量輸出。</li>
                                 <li><strong>qk_dot_accumulator:</strong> 高效管線化點積運算單元，平行讀取 Q/K 特徵向量並進行矩陣乘法累加。</li>
                                 <li><strong>sparse_softmax_sv:</strong> 實作 Online Softmax 演算法與分母除法，並隨後與 V 特徵向量進行加權累加，輸出 Context Vector。</li>
-                                <li><strong>stats_counter:</strong> 監控電路效能，即時統計運算週期數與稀疏化節省比率。</li>
-                                <li><strong>Result FIFO:</strong> 緩衝輸出數據，提供 AXI-Stream 握手介面與外部系統同步。</li>
+                                <li><strong>stats_counter:</strong> 監控電路效能，即時統計運算配對數、執行週期數與乘加次數。</li>
+                                <li><strong>Result FIFO:</strong> 緩衝輸出數據，提供 16 字深度之環狀佇列，解耦主機讀取與加速核計算。</li>
                             </ul>
-                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">提示：點擊左側電路圖中綠色、藍色或粉紅色的子模組方框，可直接跳轉至各別的細節電路圖與設計說明。</p>
-                        </div>
-                    </div>
-                `;
+
+                             <h3 style="color:#fbbf24; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(251,191,36,0.3); padding-bottom:4px;">主機暫存器對照表 (Host Register Map)</h3>
+                             <table style="width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; color:var(--text-muted); text-align:left;">
+                               <thead>
+                                 <tr style="border-bottom:1px solid var(--border-color); color:var(--text-main);">
+                                   <th style="padding:6px 4px;">暫存器名稱</th>
+                                   <th style="padding:6px 4px;">地址 (Addr)</th>
+                                   <th style="padding:6px 4px;">類型</th>
+                                   <th style="padding:6px 4px;">功能說明</th>
+                                 </tr>
+                               </thead>
+                               <tbody>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_CONTROL</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x00</td>
+                                   <td style="padding:6px 4px;">RW</td>
+                                   <td style="padding:6px 4px;">控制暫存器。bit[0]: 啟動核心 (Start)；bit[3:1]: 注意力模式 (1:滑動窗口, 2:空洞窗口, 3:滑動全局, 4:蝴蝶網路)；bit[4]: 重置結果 FIFO；bit[7:5] 須為 0。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_SEQ_LEN</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x01</td>
+                                   <td style="padding:6px 4px;">RW</td>
+                                   <td style="padding:6px 4px;">序列長度暫存器 (8-bit)。設定加速器運算 Token 總長度 (範圍 1 ~ 128，預設 16)。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_QKV_ADDR_L/H</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x02/0x03</td>
+                                   <td style="padding:6px 4px;">RW</td>
+                                   <td style="padding:6px 4px;">QKV 記憶體定址暫存器 (11-bit)。bit[10:9]: SRAM 選擇 (0:Q, 1:K, 2:V)；bit[8:2]: Token 索引；bit[1:0]: 特徵維度索引。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_QKV_DATA</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x04</td>
+                                   <td style="padding:6px 4px;">RW</td>
+                                   <td style="padding:6px 4px;">特徵數據讀寫暫存器 (8-bit)。讀寫會使定址暫存器 ADDR_QKV_ADDR 自動遞增 1，便於連續串流寫入。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_STATUS</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x05</td>
+                                   <td style="padding:6px 4px;">RO</td>
+                                   <td style="padding:6px 4px;">狀態暫存器。bit[0]: busy (忙碌)；bit[1]: done_sticky (中斷完成)；bit[2]: result_valid (FIFO有值)；bit[3]: fifo_full (FIFO已滿)；bit[4]: result_overflow；bit[5]: protocol_error。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_RESULT_Q_IDX</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x08</td>
+                                   <td style="padding:6px 4px;">RO</td>
+                                   <td style="padding:6px 4px;">當前 FIFO 頂端結果之 Query 索引。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_RESULT_FEAT_IDX</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x09</td>
+                                   <td style="padding:6px 4px;">RO</td>
+                                   <td style="padding:6px 4px;">當前 FIFO 頂端結果之 Feature 維度索引。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_RESULT_VALUE_0/1</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x0A/0x0B</td>
+                                   <td style="padding:6px 4px;">RO</td>
+                                   <td style="padding:6px 4px;">當前 FIFO 頂端結果特徵值 (16-bit Q8.8 格式，分低/高雙位元組)。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_RESULT_POP</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x0E</td>
+                                   <td style="padding:6px 4px;">WO</td>
+                                   <td style="padding:6px 4px;">結果 FIFO 彈出暫存器。寫入 bit[0]=1 可彈出 FIFO 最前端資料。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_PAIR_COUNT</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x10~0x13</td>
+                                   <td style="padding:6px 4px;">RO</td>
+                                   <td style="padding:6px 4px;">運算配對計數器快照 (32-bit)。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_CYCLE_COUNT</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x14~0x17</td>
+                                   <td style="padding:6px 4px;">RO</td>
+                                   <td style="padding:6px 4px;">有效執行週期計數器快照 (32-bit，依據 pair_valid 累加)。</td>
+                                 </tr>
+                                 <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_MAC_COUNT</td>
+                                   <td style="padding:6px 4px; font-family:monospace;">0x18~0x1B</td>
+                                   <td style="padding:6px 4px;">RO</td>
+                                   <td style="padding:6px 4px;">總乘加次數計數器快照 (32-bit)。</td>
+                                 </tr>
+                               </tbody>
+                             </table>
+
+                             <h3 style="color:#fbbf24; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(251,191,36,0.3); padding-bottom:4px;">自適應 Pipeline 握手與反向阻塞機制 (advance_ready)</h3>
+                             <p>本晶片所有暫存器階段和控制邏輯皆與內部 <code>advance_ready</code> (對應電路中的 <code>pipeline_ready</code>) 握手訊號同步：</p>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 6px;">
+                               <li><strong>控制源頭:</strong> <code>pipeline_ready = score_ready && softmax_score_ready</code>。因為點積輸出準備就緒訊號 <code>score_ready</code> 固定為 1，因此握手致能主要取決於 <code>softmax_score_ready</code>，即在線 Softmax 狀態機是否處於 <code>STATE_COLLECT</code> 狀態。</li>
+                               <li><strong>反向阻塞傳播:</strong> 當 Softmax 正在進行行權重重縮放 (<code>STATE_UPDATE</code>)、16週期的位序列除法運算 (<code>STATE_DIVIDE</code>) 或下游結果 FIFO 已滿 (<code>fifo_full = 1</code>) 時，<code>softmax_score_ready</code> 將拉低為 0。這會使點積管線的所有階段暫存器 (Stage 0, 1, 2) 寫入致能被同步關閉，資料凍結；同時 <code>qk_pair_streamer</code> 停止產生新配對索引，qkv_feature_mem SRAM 暫停讀取。</li>
+                               <li><strong>優勢:</strong> 此握手機制實現了全硬體級自適應時序調整。無論 Host 讀出結果多慢，或除法運算多費時，均能保證前級高速管線數據不丟失。</li>
+                             </ul>
+                             <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">提示：點擊左側電路圖中綠色、藍色或粉紅色的子模組方框，可直接跳轉至各別的細節電路圖與設計說明。</p>
+                         </div>
+                     </div>
+                 `;
             } else if (tabId === 'pair_streamer') {
                 canvasArea.innerHTML = `
                     <div class="tab-content-wrapper" style="width:100%; height:100%;">
@@ -692,32 +786,58 @@
                     </div>
                 `;
 
-                infoArea.innerHTML = `
-                    <div class="tab-content-wrapper">
-                        <div class="info-header">
-                            <h2 class="info-title">
-                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#10b981; box-shadow: 0 0 8px #10b981;"></span>
-                                Pair Streamer (索引產生器) 設計細節
-                            </h2>
-                        </div>
-                        <div class="info-body">
-                            <p><strong>qk_pair_streamer</strong> 模組是稀疏注意力機制的控制核心，負責產生當前 Query 與 Key 進行注意力運算的配對索引。藉由特定的稀疏樣式 (Sparse Pattern)，可大幅節省記憶體讀取與乘加運算。</p>
-                            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
-                                <li><strong>Pattern Controller (FSM):</strong> 控制稀疏索引生成的狀態機。依序經歷 <code>S_IDLE</code>、<code>S_LOAD_BLOCK</code> (載入區塊)、<code>S_STREAM_WINDOW</code> (滑動窗口)、<code>S_GLOBAL_ROW</code> (列窗口)、<code>S_BUTTERFLY</code> (蝴蝶網路) 等狀態。</li>
-                                <li><strong>Line Buffers (暫存緩衝區):</strong> 為了最大化資料重用度並降低 SRAM 讀取次數，設計了四種不同類型的 Line Buffer:
-                                    <ul style="padding-left: 15px; margin-top: 5px;">
-                                        <li><strong>Block LB:</strong> 快取 Sliding Window (窗口大小=4) 內相鄰區塊的 Key 索引。</li>
-                                        <li><strong>Global Row LB:</strong> 快取 Global Row (列大小=4) 的 Key 索引，實現全局注意力。</li>
-                                        <li><strong>Butterfly LB:</strong> 實現 Butterfly 稀疏模式 (寬度=8)，支援跨步長度存取。</li>
-                                        <li><strong>Global LB:</strong> 快取特定關鍵字 (Global Tokens) 索引。</li>
-                                    </ul>
-                                </li>
-                                <li><strong>MUX Selector:</strong> 根據目前 FSM 狀態與模式選擇對應的 Line Buffer 索引輸出，最終送至 <code>qkv_feature_mem</code> 定址。</li>
-                            </ul>
-                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">本模組確保了稀疏運算的規律性，利用雙埠緩衝將大量隨機 SRAM 讀取轉化為有序的緩衝流存取。</p>
-                        </div>
-                    </div>
-                `;
+                                 infoArea.innerHTML = `
+                     <div class="tab-content-wrapper">
+                         <div class="info-header">
+                             <h2 class="info-title">
+                                 <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#10b981; box-shadow: 0 0 8px #10b981;"></span>
+                                 Pair Streamer (索引產生器) 設計細節
+                             </h2>
+                         </div>
+                         <div class="info-body">
+                             <p><strong>qk_pair_streamer</strong> 模組是稀疏注意力機制的控制核心，負責產生當前 Query 與 Key 進行注意力運算的配對索引。藉由特定的稀疏樣式 (Sparse Pattern)，可大幅節省記憶體讀取與乘加運算。</p>
+                             
+                             <h3 style="color:#10b981; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(16,185,129,0.3); padding-bottom:4px;">四種稀疏注意力模式與定址特色</h3>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
+                                 <li><strong>滑動窗口模式 (Sliding Window Mode - MODE_SLIDING = 3'd1):</strong> 
+                                     <ul>
+                                         <li><strong>定址邏輯:</strong> <code>phase</code> 保持在 <code>PHASE_LOCAL</code> (2'd0)。對於每個 Query 索引 <code>q_idx</code> (0 到 <code>cfg_seq_len-1</code>)，計算對應區塊起點 <code>block_start = (q_idx / WINDOW_SIZE) * WINDOW_SIZE</code>。</li>
+                                         <li><strong>Key 索引生成:</strong> <code>k_idx</code> 從 <code>block_start</code> 循序掃描至 <code>block_start + WINDOW_SIZE - 1</code>。只計算與 Query 同屬一個本地窗口 (預設大小為 4) 內的 Token，省略窗口外的無關計算。</li>
+                                     </ul>
+                                 </li>
+                                 <li><strong>膨脹窗口模式 (Dilated Window Mode - MODE_DILATED = 3'd2):</strong>
+                                     <ul>
+                                         <li><strong>定址邏輯:</strong> <code>phase</code> 保持在 <code>PHASE_LOCAL</code> (2'd0)。與滑動窗口定址類似，但 <code>offset</code> 累加步長改為膨脹步長 <code>DILATION</code> (預設為 2)。</li>
+                                         <li><strong>Key 索引生成:</strong> <code>k_idx = block_start + offset</code>，其中 <code>offset</code> 以 <code>DILATION</code> 為步長跳躍式掃描。能在不增加計算量 and 硬體乘法器的前提下，藉由稀疏跨步將感受野擴大 <code>DILATION</code> 倍。</li>
+                                     </ul>
+                                 </li>
+                                 <li><strong>滑動全局模式 (Sliding Global Mode - MODE_SLIDING_GLOBAL = 3'd3):</strong>
+                                     <ul>
+                                         <li><strong>第一階段 (PHASE_LOCAL):</strong> 首先完成上述本地滑動窗口注意力的索引配對。</li>
+                                         <li><strong>第二階段 (PHASE_COL_GLOBAL - 2'd1):</strong> 列全局注意力。<code>q_idx</code> 從 0 循序累加到 <code>cfg_seq_len-1</code>，此時 <code>k_idx</code> 固定為 <code>GLOBAL_INDEX</code> (預設為 0)。為避免重複計算，當 Query 落在與 <code>GLOBAL_INDEX</code> 相同的本地區塊內時，<code>pair_valid</code> 會自動被拉低過濾。</li>
+                                         <li><strong>第三階段 (PHASE_ROW_GLOBAL - 2'd2):</strong> 行全局注意力。<code>q_idx</code> 固定為 <code>GLOBAL_INDEX</code>，此時 <code>k_idx</code> 從 0 循序累加到 <code>cfg_seq_len-1</code>。同樣地，若 Key 落在與 <code>GLOBAL_INDEX</code> 相同的本地區塊內，則過濾 `pair_valid` 以避免重複。</li>
+                                     </ul>
+                                 </li>
+                                 <li><strong>蝴蝶網路模式 (Butterfly Mode - MODE_BUTTERFLY = 3'd4):</strong>
+                                     <ul>
+                                         <li><strong>定址邏輯:</strong> <code>phase</code> 保持在 <code>PHASE_BUTTERFLY</code> (2'd3)。跨步 <code>offset</code> 從 1 開始，每次在所有 Query 跑完後左移 1 位元（乘以 2），直到 <code>(offset << 1) >= cfg_seq_len</code>。</li>
+                                         <li><strong>Key 索引生成:</strong> 利用位元互斥或 (Bitwise XOR) 進行蝴蝶式定址：<code>k_idx = q_idx ^ offset</code>。此模式能在多個蝴蝶跨步層級間，以極高稀疏度實現對稱式全域資訊交互。</li>
+                                     </ul>
+                                 </li>
+                             </ul>
+
+                             <h3 style="color:#10b981; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(16,185,129,0.3); padding-bottom:4px;">KV_LBV2 行緩衝器快取機制</h3>
+                             <p>為了使點積與 Softmax 能流式讀取 feature 而無須重刷主記憶體 SRAM，<code>qk_pair_streamer</code> 內部以 <code>KV_LBV2</code> 移動暫存器組成了四種緩衝區，根據 <code>buffer_bank</code> 與 <code>buffer_select</code> 平行快取及重用先前存取的 Key 索引：</p>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 6px;">
+                               <li><strong>Block LB:</strong> 快取滑動窗口內 WINDOW_SIZE 個 Key 索引（實作 4 個深度為 4 的緩衝器）。</li>
+                               <li><strong>Global Row LB:</strong> 快取全局行所需 Key 索引（4 個深度為 4 的緩衝器）。</li>
+                               <li><strong>Butterfly LB:</strong> 快取跨步蝴蝶定址之 Key 索引（IDX_WIDTH = 8 個深度為 4 的緩衝器）。</li>
+                               <li><strong>Global LB:</strong> 快取特定全域 Token 的 Key 索引（1 個深度為 1 的緩衝器）。</li>
+                             </ul>
+                             <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">本模組確保了稀疏運算的規律性，利用雙埠緩衝將大量隨機 SRAM 讀取轉化為有序的緩衝流存取。</p>
+                         </div>
+                     </div>
+                 `;
             } else if (tabId === 'feature_mem') {
                 canvasArea.innerHTML = `
                     <div class="tab-content-wrapper" style="width:100%; height:100%;">
@@ -858,25 +978,27 @@
                     </div>
                 `;
 
-                infoArea.innerHTML = `
-                    <div class="tab-content-wrapper">
-                        <div class="info-header">
-                            <h2 class="info-title">
-                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#10b981; box-shadow: 0 0 8px #10b981;"></span>
-                                Feature Memory (特徵記憶體) 設計細節
-                            </h2>
-                        </div>
-                        <div class="info-body">
-                            <p><strong>qkv_feature_mem</strong> 負責存放所有 Token 的 Query、Key、Value 特徵向量，設計上採用三組獨立的 Dual-Port 高速 SRAM 實作，確保讀寫不衝突且能平行供料給點積運算單元。</p>
-                            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
-                                <li><strong>獨立 SRAM 方塊:</strong> 包含 <code>q_mem</code> (Query), <code>k_mem</code> (Key), <code>v_mem</code> (Value)。每個 SRAM 大小為 128 words x 64-bit (以 FEATURE_DIM = 64, 量化精度為 8-bit 為例)。</li>
-                                <li><strong>寫入路徑 (Write Path):</strong> 由 <code>Write Controller & Demux</code> 接收外部匯流排寫入訊號。藉由 <code>qkv_we</code> (寫入致能)、<code>qkv_sel</code> (SRAM選擇) 將數據 <code>qkv_data_in</code> 依據 <code>qkv_token_idx</code> 與 <code>qkv_feature_idx</code> 定址寫入指定記憶體。</li>
-                                <li><strong>並行讀取路徑 (Read Path):</strong> 注意力運算時，QK Pair Streamer 產生的 <code>q_read_idx</code>, <code>k_read_idx</code>, <code>v_read_idx</code> 可同時定址三個記憶體，在同一個時脈週期內並行輸出對應的 <code>FEATURE_DIM</code> 維度特徵向量。</li>
-                            </ul>
-                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">藉由切分三組獨立 SRAM 並支援雙埠，消除特徵存取的結構性衝突 (Structural Hazard)，為管線化 MAC 提供最大頻寬。</p>
-                        </div>
-                    </div>
-                `;
+                                 infoArea.innerHTML = `
+                     <div class="tab-content-wrapper">
+                         <div class="info-header">
+                             <h2 class="info-title">
+                                 <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#10b981; box-shadow: 0 0 8px #10b981;"></span>
+                                 Feature Memory (特徵記憶體) 設計細節
+                             </h2>
+                         </div>
+                         <div class="info-body">
+                             <p><strong>qkv_feature_mem</strong> 負責存放所有 Token 的 Query、Key、Value 特徵向量，設計上採用三組獨立的 Dual-Port 高速 SRAM 實作，確保讀寫不衝突且能平行供料給點積運算單元。</p>
+                             
+                             <h3 style="color:#10b981; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(16,185,129,0.3); padding-bottom:4px;">並行雙埠特徵讀寫機制</h3>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
+                                 <li><strong>獨立 SRAM 塊與規格:</strong> 包含 <code>q_mem</code> (Query), <code>k_mem</code> (Key), <code>v_mem</code> (Value) 三組獨立 SRAM。每個 SRAM 大小為 128 words x 64-bit（實作中 FEATURE_DIM = 4，以 32-bit 為特徵字長提供並行存取）。其雙埠設計包含一組寫入埠與一組讀取埠，保證 Host 載入資料與加速器計算讀取不衝突。</li>
+                                 <li><strong>寫入路徑 (Write Path) 譯碼:</strong> Host 寫入 <code>ADDR_QKV_DATA</code> (0x04) 時，<code>Write Controller</code> 會將 11位元 <code>qkv_addr</code> 的高 2 位元 <code>qkv_addr[10:9]</code> 解碼為 <code>qkv_sel</code> 用以點選 Q、K 或 V SRAM。中段 <code>qkv_addr[8:2]</code> 映射為 Token 索引 <code>qkv_token_idx</code>，低 2 位元 <code>qkv_addr[1:0]</code> 則映射為特徵維度索引 <code>qkv_feature_idx</code>。當寫入致能 <code>qkv_we</code> 觸發時，即可精確將 8位元資料寫入指定 Token 的對應特徵維度中。</li>
+                                 <li><strong>並行讀取路徑 (Read Path):</strong> 計算注意力時，QK Pair Streamer 會同時提供 <code>q_read_idx</code>、<code>k_read_idx</code>、<code>v_read_idx</code> 三組獨立讀取位址。因為三個 SRAM 模組物理上獨立且各具獨立讀埠，因此<strong>可在同一個 clock 週期內並行輸出</strong>對應的 <code>FEATURE_DIM = 4</code> 維度特徵向量（即三個 32位元特徵向量），完全避免了結構性 Hazard，為管線點積 MAC 與在線乘加提供最大頻寬。</li>
+                             </ul>
+                             <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">藉由切分三組獨立 SRAM 並支援雙埠，消除特徵存取的結構性衝突 (Structural Hazard)，為管線化 MAC 提供最大頻寬。</p>
+                         </div>
+                     </div>
+                 `;
             } else if (tabId === 'dot_accum') {
                 canvasArea.innerHTML = `
                     <div class="tab-content-wrapper" style="width:100%; height:100%;">
@@ -1127,26 +1249,30 @@
                     </div>
                 `;
 
-                infoArea.innerHTML = `
-                    <div class="tab-content-wrapper">
-                        <div class="info-header">
-                            <h2 class="info-title">
-                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#3b82f6; box-shadow: 0 0 8px #3b82f6;"></span>
-                                QK Dot Accumulator (點積管線) 設計細節
-                            </h2>
-                        </div>
-                        <div class="info-body">
-                            <p><strong>qk_dot_accumulator</strong> 是一個高吞吐量且管線化的矩陣乘法點積計算單元，專門用於在單一週期內計算 Query 向量與 Key 向量對應維度的乘積，並在下一週期完成累加。以下為其主要管線級別 (Pipeline Stages) 的實作特點：</p>
-                            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
-                                <li><strong>Stage 0 (輸入與乘法器):</strong> 藉由暫存器 <code>stage0_q_feature_vector</code> 與 <code>stage0_k_feature_vector</code> 快取從記憶體讀出的 Q/K 特徵向量（各為 32-bit，切分為 4 個 8-bit 的數值）。隨後，4 組獨立乘法器 <code>Multiplier Lane 0~3</code> 平行計算 Q 與 K 的各維度乘積。</li>
-                                <li><strong>Stage 1 (暫存與加法樹):</strong> 乘法結果暫存於 32-bit 暫存器 <code>product_reg [0:3]</code>，並立即送入二級加法樹 (Adder Tree)。第一級加法器分別計算 <code>(0+1)</code> 與 <code>(2+3)</code>，第二級加法器將兩組和累加出最終點積結果 <code>score_sum</code>。</li>
-                                <li><strong>Stage 2 (輸出暫存):</strong> 在下一個時脈上升沿，如果 <code>advance_ready</code> 為高電平，點積結果 <code>score_sum</code> 將被鎖存到輸出暫存器 <code>attention_score</code> 中，同時輸出對應的 <code>score_q_idx</code>、<code>score_k_idx</code> 以及 <code>score_valid</code> 標記。</li>
-                                <li><strong>管線停頓控制:</strong> 所有管線級暫存器皆由 <code>clk</code> 與 <code>advance_ready</code> 共同控制。當後續的 Softmax 或除法器忙碌時，<code>advance_ready</code> 會拉低，使整個點積管線保持原狀態（停頓），避免數據遺失。</li>
-                            </ul>
-                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">本模組採用對稱的樹狀加法器以平衡關鍵路徑 (Critical Path) 延遲，在高頻率運作下仍能確保點積計算的正確性與效率。</p>
-                        </div>
-                    </div>
-                `;
+                                 infoArea.innerHTML = `
+                     <div class="tab-content-wrapper">
+                         <div class="info-header">
+                             <h2 class="info-title">
+                                 <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#3b82f6; box-shadow: 0 0 8px #3b82f6;"></span>
+                                 QK Dot Accumulator (點積管線) 設計細節
+                             </h2>
+                         </div>
+                         <div class="info-body">
+                             <p><strong>qk_dot_accumulator</strong> 是一個高吞吐量且管線化的矩陣乘法點積計算單元，專門用於在單一週期內計算 Query 向量與 Key 向量對應維度的乘積，並在下一週期完成累加。以下為其主要管線級別 (Pipeline Stages) 的實作特點：</p>
+                             
+                             <h3 style="color:#3b82f6; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(59,130,246,0.3); padding-bottom:4px;">三級管線結構與累加機制</h3>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
+                                 <li><strong>Stage 0 (輸入與乘法器):</strong> 藉由暫存器 <code>stage0_q_feature_vector</code> 與 <code>stage0_k_feature_vector</code> 在 <code>advance_ready = 1</code> 時快取特徵（各為 32-bit，切分為 4 個 8-bit 的數值）。隨後，4 組獨立的乘法電路平行計算 Q 與 K 各維度乘積。此階段亦暫存 <code>stage0_valid</code>、<code>stage0_q_idx</code>、<code>stage0_k_idx</code>。</li>
+                                 <li><strong>Stage 1 (乘積暫存與加法樹):</strong> 乘法結果在下一個時脈沿鎖存於 32-bit 的 <code>product_reg[0:3]</code> 中。隨後，資料立即送入 combinational 加法樹，進行平行累加得到 <code>score_sum</code>。此階段亦暫存 <code>stage1_valid</code>、<code>stage1_q_idx</code>、<code>stage1_k_idx</code>。</li>
+                                 <li><strong>Stage 2 (輸出暫存):</strong> 再下一個時脈沿，點積結果 <code>score_sum</code> 將被鎖存到輸出暫存器 <code>attention_score</code> 中，同時輸出對應的 <code>score_q_idx</code>、<code>score_k_idx</code> 以及 <code>score_valid</code>。因此，點積運算的總時脈 Latency 為<strong>精確的 3 個週期</strong>。</li>
+                             </ul>
+
+                             <h3 style="color:#3b82f6; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(59,130,246,0.3); padding-bottom:4px;">管線停頓控制與阻塞傳播</h3>
+                             <p>所有管線暫存器均受 <code>advance_ready</code> 訊號控制。當後續的 Softmax 除法器忙碌或 FIFO 滿時，<code>advance_ready</code> 被拉低為 0，這會關閉所有管線暫存器（Stage 0, 1, 2）的寫入致能，使整個點積管線保持原狀態（停頓），同時反向阻塞前級的 Streamer 與記憶體讀出位址，防止計算數據遺失。</p>
+                             <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">本模組採用對稱的樹狀加法器以平衡關鍵路徑 (Critical Path) 延遲，在高頻率運作下仍能確保點積計算的正確性與效率。</p>
+                         </div>
+                     </div>
+                 `;
             } else if (tabId === 'softmax_context') {
                 canvasArea.innerHTML = `
                     <div class="tab-content-wrapper" style="width:100%; height:100%;">
@@ -1359,33 +1485,61 @@
                     </div>
                 `;
 
-                infoArea.innerHTML = `
-                    <div class="tab-content-wrapper">
-                        <div class="info-header">
-                            <h2 class="info-title">
-                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#ec4899; box-shadow: 0 0 8px #ec4899;"></span>
-                                Softmax & Context (權重與除法) 設計細節
-                            </h2>
-                        </div>
-                        <div class="info-body">
-                            <p><strong>sparse_softmax_sv</strong> 模組負責執行在線 Softmax 演算法 (Online Softmax) 以及與 Value 向量進行乘加，最終輸出上下文向量 (Context Vector)。其內部設計包含控制狀態機、在線指數累加器、以及位序列除法器 (Bit-Serial Restoring Divider)。</p>
-                            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
-                                <li><strong>在線 Softmax 狀態機 (FSM):</strong> 控制整個流式注意力的動態計算。
-                                    <ul style="padding-left: 15px; margin-top: 5px;">
-                                        <li><code>COLLECT</code>: 接收點積暫存器的 <code>attention_score</code>，若有新分數則進到 <code>UPDATE</code>。</li>
-                                        <li><code>UPDATE</code>: 即時更新行最大值 (<code>row_max</code>) 與行指數和 (<code>row_exp_sum</code>)，並與 Value 向量乘加累加至 <code>row_weighted_sum</code>。若點積完成則進入 <code>PREPARE</code>。</li>
-                                        <li><code>PREPARE</code>: 初始化除法器的暫存器，將分子 <code>row_weighted_sum</code> 左移 8 位元，分母載入 <code>row_exp_sum</code>，並設定除法計數器為 15。</li>
-                                        <li><code>DIVIDE</code>: 位序列除法計算，利用逐位減法與移位，在 16 個時脈週期內求出商。</li>
-                                        <li><code>OUTPUT</code>: 商鎖存至輸出暫存器，拉高 <code>context_valid</code>，將資料送出。</li>
-                                    </ul>
-                                </li>
-                                <li><strong>指数估算器 (exp_lut):</strong> 接收輸入差值，藉由內部唯讀查表 (LUT) 得到 16-bit Q0.16 格式的指數權重，能有效避免硬體直接計算自然指數的高複雜度。</li>
-                                <li><strong>位序列除法器 (Bit-Serial Restoring Divider):</strong> 由於行指數和 (分母) 是動態更新的，本電路採用逐位減法比較器。在 <code>DIVIDE</code> 狀態下，逐週期判斷餘數暫存器 <code>division_remainder</code> 是否大於或等於移位後的除數。如果是，則餘數減去該除數並將商 <code>division_quotient</code> 對應位元設為 1，否則設為 0，並將 <code>division_bit</code> 減 1，直到計算完所有 16 位元。</li>
-                            </ul>
-                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">本在線 Softmax 架構消成了傳統 Softmax 需要快取整行 Attention Matrix 才能找最大值與分母的和的缺點，極大程度節省了晶片內 SRAM 的面積與功耗。</p>
-                        </div>
-                    </div>
-                `;
+                                 infoArea.innerHTML = `
+                     <div class="tab-content-wrapper">
+                         <div class="info-header">
+                             <h2 class="info-title">
+                                 <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#ec4899; box-shadow: 0 0 8px #ec4899;"></span>
+                                 Softmax & Context (權重與除法) 設計細節
+                             </h2>
+                         </div>
+                         <div class="info-body">
+                             <p><strong>sparse_softmax_sv</strong> 模組負責執行在線 Softmax 演算法 (Online Softmax) 以及與 Value 向量進行乘加，最終輸出上下文向量 (Context Vector)。其內部設計包含控制狀態機、在線指數累加器、以及位序列除法器 (Bit-Serial Restoring Divider)。</p>
+                             
+                             <h3 style="color:#ec4899; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(236,72,153,0.3); padding-bottom:4px;">1. 指數 LUT 與 Delta 差值計算</h3>
+                             <p>本設計採用唯讀查表 (ROM LUT) 機制進行自然指數 $e^{-x}$ 的近似運算：</p>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 6px;">
+                               <li><strong>差值縮放:</strong> 當 Stage 2 點積分數 <code>score_value</code> 抵達時，計算其與該行 Query 當前最大值 <code>row_max</code> 的絕對差值，並右移 <code>SCORE_SCALE_SHIFT = 1</code> 位元進行縮放（相當於除以 2，對應 $\sqrt{d_{model}} = 2$ 縮放）：<code>incoming_delta = |score_value - row_max| >> 1</code>。</li>
+                               <li><strong>查表映射:</strong> 使用 <code>incoming_delta</code> 定址 <code>exp_lut</code>。內部 ROM 包含了 12 組 Q0.16 定點數格式的自然指數近似值：0對應65535 ($e^0 pprox 1.0$), 1對應24109 ($e^{-0.5} pprox 0.367$), 2對應8869 ($e^{-1.0} pprox 0.135$)... 當差值 $\ge 11$ 時，指數值趨近於 0，查表直接返回 0。這使得指數計算僅需 1 個週期即可完成。</li>
+                             </ul>
+
+                             <h3 style="color:#ec4899; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(236,72,153,0.3); padding-bottom:4px;">2. Weighted Sum 累加與動態重縮放</h3>
+                             <p>隨著點積分數流式輸入，行指數和 <code>row_exp_sum</code> 與加權特徵累加值 <code>row_weighted_sum</code> 必須即時動態更新。當新分數進來時，會出現兩種情況：</p>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 6px;">
+                               <li><strong>情況 A: 新分數大於當前最大值 (score_value > row_max)</strong><br>
+                                 此時觸發<strong>重縮放 (Rescaling) 機制</strong>。舊的最大值已失效，因此原本已累加的 <code>row_weighted_sum</code> 必須乘上當前權重差值進行衰減：<code>rescaled_weighted_sum = (row_weighted_sum * incoming_weight) >> 16</code> (其中 <code>incoming_weight = e^{row_max - score_value}</code>)，再加上新 Value 特徵的貢獻：<code>rescaled_weighted_sum + (EXP_ONE * update_v)</code>。同時更新 <code>row_exp_sum</code> 為舊和經衰減後加上 1。
+                               </li>
+                               <li><strong>情況 B: 新分數小於或等於當前最大值 (score_value <= row_max)</strong><br>
+                                 舊的最大值仍然有效，無需對已有的累加值進行回溯衰減，直接將新點積分數經查表得到的權重與新 Value 進行乘加累加即可：<code>row_weighted_sum <= row_weighted_sum + (incoming_weight * update_v)</code>。同時將 <code>incoming_weight</code> 直接累加至 <code>row_exp_sum</code>。
+                               </li>
+                             </ul>
+
+                             <h3 style="color:#ec4899; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(236,72,153,0.3); padding-bottom:4px;">3. 位序列恢復餘數除法器 (Bit-Serial Restoring Divider)</h3>
+                             <p>本在線 Softmax 電路內建一個 16週期恢復餘數串列除法器，以最小化硬體面積：</p>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 6px;">
+                               <li><strong>初始化 (STATE_PREPARE):</strong> 將分子 <code>row_weighted_sum</code> 左移 8 位元（<code>OUTPUT_FRAC_BITS = 8</code>）作為 48-bit 餘數暫存器 <code>division_remainder</code> 的初始值，以取得 Q8.8 定點數格式的輸出；分母 <code>row_exp_sum</code> 載入 <code>division_denominator</code>；除法計數器 <code>division_bit</code> 初始化為 15，商暫存器 <code>division_quotient</code> 清零。</li>
+                               <li><strong>逐位除法 (STATE_DIVIDE):</strong> 電路在 <code>STATE_DIVIDE</code> 狀態下運作 16 個週期。在每一時脈週期，比較器判斷 <code>division_remainder >= (division_denominator << division_bit)</code>：
+                                 <ul>
+                                   <li>若成立：餘數減去移位後的除數（<code>division_remainder <= division_remainder - shifted_divisor</code>），且商的對應位元 <code>division_quotient[division_bit]</code> 設為 1。</li>
+                                   <li>若不成立：餘數保持不變（即**恢復餘數**，Restoring），且商的該位元 <code>division_quotient[division_bit]</code> 設為 0。</li>
+                                 </ul>
+                                 隨後 <code>division_bit</code> 減 1，直至遞減到 0，完成所有 16 位元的商運算，隨後輸出鎖存並拉高 <code>context_valid</code>。
+                               </li>
+                             </ul>
+
+                             <h3 style="color:#ec4899; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(236,72,153,0.3); padding-bottom:4px;">4. 在線 Softmax 狀態機 (FSM)</h3>
+                             <p>狀態機控制整個流式注意力的動態計算：</p>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 6px;">
+                                 <li><code>COLLECT (3'd0)</code>: 接收點積暫存器的 <code>attention_score</code>，若有新分數則進到 <code>UPDATE</code>。</li>
+                                 <li><code>UPDATE (3'd1)</code>: 即時更新行最大值 (<code>row_max</code>) 與行指數和 (<code>row_exp_sum</code>)，並與 Value 向量進行乘加，累加至 <code>row_weighted_sum</code>。若點積完成則進入 <code>PREPARE</code>。</li>
+                                 <li><code>PREPARE (3'd2)</code>: 初始化除法器的暫存器，設定商和餘數，並設定除法計數器為 15。</li>
+                                 <li><code>DIVIDE (3'd3)</code>: 恢復餘數除法計算，利用逐位減法與移位，在 16 個時脈週期內求出商。</li>
+                                 <li><code>OUTPUT (3'd4)</code>: 商鎖存至輸出暫存器，拉高 <code>context_valid</code>，將資料送出，在 context_ready 握手後進入下一輪。</li>
+                             </ul>
+                             <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">本在線 Softmax 架構消成了傳統 Softmax 需要快取整行 Attention Matrix 才能找最大值與分母的和的缺點，極大程度節省了晶片內 SRAM 的面積與功耗。</p>
+                         </div>
+                     </div>
+                 `;
             } else if (tabId === 'stats_fifo') {
                 canvasArea.innerHTML = `
                     <div class="tab-content-wrapper" style="width:100%; height:100%;">
@@ -1581,36 +1735,36 @@
                     </div>
                 `;
 
-                infoArea.innerHTML = `
-                    <div class="tab-content-wrapper">
-                        <div class="info-header">
-                            <h2 class="info-title">
-                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#84cc16; box-shadow: 0 0 8px #84cc16;"></span>
-                                Stats & Result FIFO 詳細說明
-                            </h2>
-                        </div>
-                        <div class="info-body">
-                            <p>本分頁展示了系統中的<strong>效能統計計數器 (stats_counter)</strong> 與<strong>結果快取佇列 (Result FIFO)</strong> 的 RTL 硬體細節與運作機制。這兩個模組負責監控運算效能並快取計算結果，以進行外部總線 Readout：</p>
-                            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
-                                <li><strong>效能統計計數器 (stats_counter):</strong> 包含三個獨立的 32位元累加暫存器：
-                                    <ul style="padding-left: 15px; margin-top: 5px;">
-                                        <li><code>pair_count</code>: 累加所有計算過的 Query/Key Pair 數量。每當 <code>pair_valid</code> 握手成功即加 1。</li>
-                                        <li><code>cycle_count</code>: 累加有效執行週期。當 <code>pair_valid</code> 有效時遞增 1，可用來統計有效運作的時脈週期。</li>
-                                        <li><code>mac_count</code>: 累加總乘加次數。因為每個 QK 配對需要計算 <code>FEATURE_DIM = 4</code> 個維度，每完成一個配對即自動加 4，精確記錄算力消耗。</li>
-                                    </ul>
-                                </li>
-                                <li><strong>結果 FIFO 緩衝區 (Result FIFO):</strong> 實作於 <code>chip_top.v</code> 中，為一個深度為 16 words、寬度為 26-bit 的環狀佇列 (Circular Queue)：
-                                    <ul style="padding-left: 15px; margin-top: 5px;">
-                                        <li><strong>寫入端 (Push):</strong> 當 Softmax 模組輸出 <code>core_context_valid</code> 且 FIFO 未滿 (<code>!fifo_full</code>) 時，將 <code>core_context_q_idx</code>、<code>core_context_feature_idx</code> 及 16位元的 <code>core_context_value</code> 寫入 <code>fifo_wr_ptr</code> 指向的槽位。</li>
-                                        <li><strong>讀取端 (Pop):</strong> 外部 Host 透過 APB 總線發起讀取。當向 <code>ADDR_RESULT_POP (0x0E)</code> 寫入 1 時，觸發 <code>fifo_pop_req</code>，使 <code>fifo_rd_ptr</code> 指向的值被彈出，並更新 <code>fifo_count</code>。</li>
-                                        <li><strong>空滿標誌:</strong> 藉由 <code>fifo_count</code> 動態計算。若 <code>fifo_count == 16</code> 則拉高 <code>fifo_full</code> 並將 <code>core_context_ready</code> 拉低，暫停上游管線；若 <code>fifo_count == 0</code> 則拉高 <code>fifo_empty</code> 暫停主機讀取。</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">本設計透過 Result FIFO 有效解耦了運算核心的高速計算與 APB 總線的慢速讀取，避免主機讀取延遲導致運算核心頻繁停頓。</p>
-                        </div>
-                    </div>
-                `;
+                                 infoArea.innerHTML = `
+                     <div class="tab-content-wrapper">
+                         <div class="info-header">
+                             <h2 class="info-title">
+                                 <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#84cc16; box-shadow: 0 0 8px #84cc16;"></span>
+                                 Stats & Result FIFO 詳細說明
+                             </h2>
+                         </div>
+                         <div class="info-body">
+                             <p>本分頁展示了系統中的<strong>效能統計計數器 (stats_counter)</strong> 與<strong>結果快取佇列 (Result FIFO)</strong> 的 RTL 硬體細節與運作機制。這兩個模組負責監控運算效能並快取計算結果，以進行外部總線 Readout：</p>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
+                                 <li><strong>效能統計計數器 (stats_counter) 運作特性:</strong> 包含三個獨立的 32位元累加暫存器：
+                                     <ul style="padding-left: 15px; margin-top: 5px;">
+                                         <li><code>pair_count</code>: 記錄實際計算的 Query-Key 配對總量。每當 <code>pair_valid && pipeline_ready</code> 在時脈沿為高電平時，計數器遞增 1。</li>
+                                         <li><code>cycle_count</code>: 記錄加速器注意力計算的有效時脈週期。<strong>此計數器依據 <code>pair_valid</code> 累加</strong>（非無條件隨 clock 遞增），只有在該週期內有有效配對計算時才加 1。這能精確反應出排除 Stall 後的有效計算週期數。</li>
+                                         <li><code>mac_count</code>: 記錄總乘加操作次數。每當 <code>pair_valid</code> 為高時，該計數器自動累加 <code>MACS_PER_PAIR = 4</code>。</li>
+                                     </ul>
+                                 </li>
+                                 <li><strong>結果 FIFO 緩衝區 (Result FIFO):</strong> 實作於 <code>chip_top.v</code> 中，為一個深度為 16 words、寬度為 26-bit 的環狀佇列 (Circular Queue)：
+                                     <ul style="padding-left: 15px; margin-top: 5px;">
+                                         <li><strong>寫入端 (Push):</strong> 當 Softmax 模組輸出 <code>core_context_valid</code> 且 FIFO 未滿 (<code>!fifo_full</code>，即 <code>core_context_ready = 1</code>) 時，將 <code>core_context_q_idx</code>、<code>core_context_feature_idx</code> 及 16位元定點數 <code>core_context_value</code> 寫入 <code>fifo_wr_ptr</code> 指向的槽位，並更新 <code>fifo_wr_ptr</code>。</li>
+                                         <li><strong>讀取端 (Pop):</strong> 外部 Host 透過 APB 總線發起讀取。當寫入 1 到 <code>ADDR_RESULT_POP (0x0E)</code> 時，觸發 <code>fifo_pop_req</code>，使 <code>fifo_rd_ptr</code> 指向的值被彈出，並更新 <code>fifo_count</code>。</li>
+                                         <li><strong>空滿標誌與反壓:</strong> 藉由 <code>fifo_count</code> 動態計算。若 <code>fifo_count == 16</code> 則拉高 <code>fifo_full</code> 並將 <code>core_context_ready</code> 拉低，暫停上游管線；若 <code>fifo_count == 0</code> 則拉高 <code>fifo_empty</code> 暫停主機讀取。</li>
+                                     </ul>
+                                 </li>
+                             </ul>
+                             <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">本設計透過 Result FIFO 有效解耦了運算核心的高速計算與 APB 總線的慢速讀取，避免主機讀取延遲導致運算核心頻繁停頓。</p>
+                         </div>
+                     </div>
+                 `;
             } else {
                 canvasArea.innerHTML = `
                     <div class="tab-content-wrapper canvas-placeholder">
