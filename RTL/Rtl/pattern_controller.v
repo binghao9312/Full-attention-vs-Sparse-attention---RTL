@@ -67,7 +67,7 @@ module pattern_controller #(
 
     task advance_butterfly;
         begin
-            if ((q_state == cfg_seq_len - 1) && (offset >= (cfg_seq_len >> 1))) begin
+            if ((q_state == cfg_seq_len - 1) && ((offset << 1) >= cfg_seq_len)) begin
                 done_pending <= 1'b1;
             end else if (q_state == cfg_seq_len - 1) begin
                 q_state <= {IDX_WIDTH{1'b0}};
@@ -104,12 +104,12 @@ module pattern_controller #(
             offset <= {IDX_WIDTH{1'b0}};
         end else begin
             done <= 1'b0;
-            pair_valid <= 1'b0;
 
             if (done_pending && advance_ready) begin
                 active <= 1'b0;
                 done_pending <= 1'b0;
                 done <= 1'b1;
+                pair_valid <= 1'b0;
             end else if (start && !active) begin
                 active <= 1'b1;
                 done_pending <= 1'b0;
@@ -120,9 +120,10 @@ module pattern_controller #(
                 q_state <= {IDX_WIDTH{1'b0}};
                 k_state <= {IDX_WIDTH{1'b0}};
                 offset <= (mode == MODE_BUTTERFLY) ? {{(IDX_WIDTH-1){1'b0}}, 1'b1} : {IDX_WIDTH{1'b0}};
+                pair_valid <= 1'b0;
             end else if (active && advance_ready) begin
                 if (phase == PHASE_LOCAL) begin
-                    pair_valid <= 1'b1;
+                    pair_valid <= ((block_start + offset) < cfg_seq_len);
                     q_idx <= q_state;
                     k_idx <= block_start + offset;
                     buffer_phase <= PHASE_LOCAL;
@@ -131,9 +132,7 @@ module pattern_controller #(
                     q_idx <= q_state;
                     k_idx <= GLOBAL_INDEX;
                     buffer_phase <= PHASE_COL_GLOBAL;
-                    if (!is_in_global_block(q_state)) begin
-                        pair_valid <= 1'b1;
-                    end
+                    pair_valid <= !is_in_global_block(q_state);
 
                     if (q_state == cfg_seq_len - 1) begin
                         phase <= PHASE_ROW_GLOBAL;
@@ -146,9 +145,7 @@ module pattern_controller #(
                     q_idx <= q_state;
                     k_idx <= k_state;
                     buffer_phase <= PHASE_ROW_GLOBAL;
-                    if (!is_in_global_block(k_state)) begin
-                        pair_valid <= 1'b1;
-                    end
+                    pair_valid <= !is_in_global_block(k_state);
 
                     if (k_state == cfg_seq_len - 1) begin
                         done_pending <= 1'b1;
@@ -162,6 +159,8 @@ module pattern_controller #(
                     buffer_phase <= PHASE_BUTTERFLY;
                     advance_butterfly();
                 end
+            end else if (!active) begin
+                pair_valid <= 1'b0;
             end
         end
     end

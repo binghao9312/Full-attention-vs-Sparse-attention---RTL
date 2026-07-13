@@ -1,0 +1,3 @@
+sed -e 's/qk_dot_/sparse_qk_dot_/g' -e 's/sparse_attention_core_SEQ_LEN128/sparse_attention_core/g' ../Syn/sparse_attention/sparse_attention_core_syn.v > sparse_attention_core_syn_postsim.v
+sed -e 's/qk_dot_/sparse_qk_dot_/g' -e 's/sparse_attention_core_SEQ_LEN128/sparse_attention_core/g' ../Syn/sparse_attention/sparse_attention_core_syn.sdf > sparse_attention_core_syn_postsim.sdf
+vcs -R -full64 -debug_access -P /usr/cad/synopsys/verdi/cur/share/PLI/VCS/LINUX64/novas.tab /usr/cad/synopsys/verdi/cur/share/PLI/VCS/LINUX64/pli.a tb.v ../Syn/full_attention/full_attention_core_syn.v sparse_attention_core_syn_postsim.v -v tsmc13_neg.v +neg_tchk +define+SDF |& tee postsim.log

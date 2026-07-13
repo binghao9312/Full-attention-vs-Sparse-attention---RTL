@@ -1,0 +1,170 @@
+<mxfile host="Electron" modified="2026-07-13T10:00:00.000Z" agent="Codex" version="24.7.17" type="device" compressed="false">
+  <diagram id="chip-top-page" name="01 chip_top">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p1-title" value="chip_top 模組階層" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#102A43;" vertex="1" parent="1">
+          <mxGeometry x="60" y="35" width="600" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-subtitle" value="RTL: chip_top.v　｜　僅呈現模組與內部功能區塊，I/O 與模組間連線均省略" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=14;fontColor=#627D98;" vertex="1" parent="1">
+          <mxGeometry x="62" y="82" width="1050" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-container" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=2;strokeWidth=2;strokeColor=#486581;fillColor=#F0F4F8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="135" width="1480" height="750" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-chip-header" value="chip_top" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeColor=#102A43;strokeWidth=2;fillColor=#102A43;fontColor=#FFFFFF;fontSize=24;fontStyle=1;align=left;spacingLeft=24;" vertex="1" parent="1">
+          <mxGeometry x="95" y="170" width="1410" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-chip-meta" value="Top-level wrapper　｜　預設 SEQ_LEN=128, WINDOW_SIZE=4, IDX_WIDTH=8, FEATURE_DIM=4" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=14;fontColor=#486581;" vertex="1" parent="1">
+          <mxGeometry x="120" y="252" width="1100" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-owned-region" value="chip_top 自有 RTL 邏輯（非獨立 module）" style="rounded=1;whiteSpace=wrap;html=1;arcSize=4;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#9FB3C8;fillColor=#FFFFFF;verticalAlign=top;align=left;spacingTop=16;spacingLeft=18;fontSize=16;fontStyle=1;fontColor=#334E68;" vertex="1" parent="1">
+          <mxGeometry x="110" y="305" width="670" height="510" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-reset" value="Reset synchronizer&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#627D98;&quot;&gt;rst_sync_0 / rst_sync_1&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeWidth=2;strokeColor=#829AB1;fillColor=#F8FAFC;fontColor=#243B53;fontSize=17;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="155" y="385" width="250" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-bus" value="Bus control / register file&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#627D98;&quot;&gt;address decode、control/status、QKV write&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeWidth=2;strokeColor=#829AB1;fillColor=#F8FAFC;fontColor=#243B53;fontSize=17;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="445" y="385" width="285" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-fifo" value="Result FIFO&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#627D98;&quot;&gt;result_fifo、read/write pointer、count&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeWidth=2;strokeColor=#829AB1;fillColor=#F8FAFC;fontColor=#243B53;fontSize=17;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="155" y="545" width="575" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-owned-note" value="這些區塊直接寫在 chip_top 內，並沒有額外的 Verilog module instance。" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeColor=#D9E2EC;fillColor=#FFFBEA;fontColor=#8D5B00;fontSize=13;align=left;spacingLeft=14;" vertex="1" parent="1">
+          <mxGeometry x="155" y="705" width="575" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-child-region" value="實例化的子模組" style="rounded=1;whiteSpace=wrap;html=1;arcSize=4;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#7B8794;fillColor=#FFFFFF;verticalAlign=top;align=left;spacingTop=16;spacingLeft=18;fontSize=16;fontStyle=1;fontColor=#334E68;" vertex="1" parent="1">
+          <mxGeometry x="825" y="305" width="635" height="510" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-core" value="sparse_attention_core&lt;br&gt;&lt;font style=&quot;font-size:13px;color:#DCEEFB;&quot;&gt;u_sparse_attention_core&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=23;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="930" y="430" width="425" height="175" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-core-desc" value="稀疏注意力運算核心&lt;br&gt;子模組結構請見分頁「02 sparse_attention_core」" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeColor=#BCCCDC;fillColor=#F0F8FF;fontColor=#334E68;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="960" y="650" width="365" height="88" as="geometry"/>
+        </mxCell>
+        <mxCell id="p1-legend" value="圖例：藍色 = Verilog module instance　｜　灰色 = module 內部邏輯區塊　｜　未繪製任何 I/O net" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=13;fontColor=#627D98;" vertex="1" parent="1">
+          <mxGeometry x="630" y="910" width="850" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="core-page" name="02 sparse_attention_core">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p2-title" value="sparse_attention_core 子模組" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#102A43;" vertex="1" parent="1">
+          <mxGeometry x="60" y="35" width="700" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-subtitle" value="RTL: sparse_attention_core.v　｜　模組排列依主要處理流程，所有 I/O 與資料線均省略" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=14;fontColor=#627D98;" vertex="1" parent="1">
+          <mxGeometry x="62" y="82" width="1050" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-container" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=2;strokeWidth=2;strokeColor=#486581;fillColor=#F0F4F8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="135" width="1480" height="750" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-header" value="sparse_attention_core" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeColor=#102A43;strokeWidth=2;fillColor=#102A43;fontColor=#FFFFFF;fontSize=24;fontStyle=1;align=left;spacingLeft=24;" vertex="1" parent="1">
+          <mxGeometry x="95" y="170" width="1410" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-step1" value="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#0967D2;fillColor=#0967D2;fontColor=#FFFFFF;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="135" y="315" width="38" height="38" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-streamer" value="qk_pair_streamer&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_qk_pair_streamer&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px;font-weight:normal;&quot;&gt;產生 Q/K 稀疏配對&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="115" y="365" width="250" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-step2" value="2" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#0967D2;fillColor=#0967D2;fontColor=#FFFFFF;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="315" width="38" height="38" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-mem" value="qkv_feature_mem&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_qkv_feature_mem&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px;font-weight:normal;&quot;&gt;Q / K / V feature memory&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="410" y="365" width="250" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-step3" value="3" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#0967D2;fillColor=#0967D2;fontColor=#FFFFFF;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="725" y="315" width="38" height="38" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-dot" value="qk_dot_accumulator&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_qk_dot_accumulator&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px;font-weight:normal;&quot;&gt;Q·K dot-product pipeline&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="705" y="365" width="250" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-step4" value="4" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#0967D2;fillColor=#0967D2;fontColor=#FFFFFF;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="315" width="38" height="38" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-softmax" value="sparse_softmax_sv&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_sparse_softmax_sv&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px;font-weight:normal;&quot;&gt;score 收集、softmax、SV context&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="365" width="310" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-stats" value="stats_counter&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_stats_counter&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px;font-weight:normal;&quot;&gt;pair / cycle / MAC 統計&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="410" y="620" width="250" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-owned" value="Core-owned pipeline / done alignment logic&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#627D98;&quot;&gt;done_delay0、done_delay1、score_collection_done 與輸出暫存器（非獨立 module）&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#9FB3C8;fillColor=#F8FAFC;fontColor=#334E68;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="705" y="620" width="605" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2-note" value="qk_pair_streamer 仍包含子模組，詳見分頁「03 qk_pair_streamer」。除它之外，其餘 4 個子模組皆為 leaf module。" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeColor=#D9E2EC;fillColor=#FFFBEA;fontColor=#8D5B00;fontSize=13;align=left;spacingLeft=14;" vertex="1" parent="1">
+          <mxGeometry x="115" y="795" width="1195" height="50" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="streamer-page" name="03 qk_pair_streamer">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="p3-title" value="qk_pair_streamer 子模組" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#102A43;" vertex="1" parent="1">
+          <mxGeometry x="60" y="35" width="700" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-subtitle" value="RTL: qk_pair_streamer.v　｜　generate array 以群組與數量表示，所有 I/O 與模組間連線均省略" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=14;fontColor=#627D98;" vertex="1" parent="1">
+          <mxGeometry x="62" y="82" width="1150" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-container" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=2;strokeWidth=2;strokeColor=#486581;fillColor=#F0F4F8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="135" width="1480" height="750" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-header" value="qk_pair_streamer" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeColor=#102A43;strokeWidth=2;fillColor=#102A43;fontColor=#FFFFFF;fontSize=24;fontStyle=1;align=left;spacingLeft=24;" vertex="1" parent="1">
+          <mxGeometry x="95" y="170" width="1410" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-pattern" value="pattern_controller&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_pattern_controller&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px;font-weight:normal;&quot;&gt;attention pattern 與 Q/K index 控制&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=20;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="290" width="460" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-block-group" value="Local block line buffers&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#627D98;&quot;&gt;gen_block_lb&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#829AB1;fillColor=#FFFFFF;verticalAlign=top;spacingTop=14;fontSize=16;fontStyle=1;fontColor=#334E68;" vertex="1" parent="1">
+          <mxGeometry x="105" y="470" width="315" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-block-lb" value="KV_LBV2&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_block_lb × WINDOW_SIZE&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="145" y="565" width="235" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-block-count" value="預設 ×4" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeColor=#D64545;fillColor=#D64545;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="305" y="490" width="88" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-row-group" value="Global-row line buffers&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#627D98;&quot;&gt;gen_global_row_lb&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#829AB1;fillColor=#FFFFFF;verticalAlign=top;spacingTop=14;fontSize=16;fontStyle=1;fontColor=#334E68;" vertex="1" parent="1">
+          <mxGeometry x="450" y="470" width="315" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-row-lb" value="KV_LBV2&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_global_row_lb × WINDOW_SIZE&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="490" y="565" width="235" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-row-count" value="預設 ×4" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeColor=#D64545;fillColor=#D64545;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="490" width="88" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-bfly-group" value="Butterfly line buffers&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#627D98;&quot;&gt;gen_butterfly_lb&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#829AB1;fillColor=#FFFFFF;verticalAlign=top;spacingTop=14;fontSize=16;fontStyle=1;fontColor=#334E68;" vertex="1" parent="1">
+          <mxGeometry x="795" y="470" width="315" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-bfly-lb" value="KV_LBV2&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_butterfly_lb × IDX_WIDTH&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="835" y="565" width="235" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-bfly-count" value="預設 ×8" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeColor=#D64545;fillColor=#D64545;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="995" y="490" width="88" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-global-group" value="Column-global line buffer&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#627D98;&quot;&gt;single instance&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=6;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#829AB1;fillColor=#FFFFFF;verticalAlign=top;spacingTop=14;fontSize=16;fontStyle=1;fontColor=#334E68;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="470" width="315" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-global-lb" value="KV_LBV2&lt;br&gt;&lt;font style=&quot;font-size:12px;color:#DCEEFB;&quot;&gt;u_global_lb ×1&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=3;strokeColor=#0967D2;fillColor=#2680C2;fontColor=#FFFFFF;fontSize=19;fontStyle=1;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="565" width="235" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-global-count" value="×1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeColor=#D64545;fillColor=#D64545;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="490" width="70" height="32" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-select" value="Buffer bank / select / eviction combinational logic（非獨立 module）" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;dashed=1;dashPattern=8 4;strokeWidth=2;strokeColor=#9FB3C8;fillColor=#F8FAFC;fontColor=#334E68;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="450" y="770" width="660" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3-note" value="chip_top 預設參數下共有 17 個 KV_LBV2 instance：4 + 4 + 8 + 1。" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;strokeColor=#D9E2EC;fillColor=#FFFBEA;fontColor=#8D5B00;fontSize=13;align=left;spacingLeft=14;" vertex="1" parent="1">
+          <mxGeometry x="105" y="770" width="315" height="60" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -71,10 +71,10 @@ module qk_pair_streamer #(
     assign block_select = k_idx % WINDOW_SIZE;
     assign butterfly_stride = q_idx ^ k_idx;
     assign butterfly_select = butterfly_stage_select(butterfly_stride);
-    assign block_buffer_en = pair_valid && (buffer_phase == PHASE_LOCAL);
-    assign global_buffer_en = pair_valid && (buffer_phase == PHASE_COL_GLOBAL);
-    assign global_row_buffer_en = pair_valid && (buffer_phase == PHASE_ROW_GLOBAL);
-    assign butterfly_buffer_en = pair_valid && (buffer_phase == PHASE_BUTTERFLY);
+    assign block_buffer_en = pair_valid && advance_ready && (buffer_phase == PHASE_LOCAL);
+    assign global_buffer_en = pair_valid && advance_ready && (buffer_phase == PHASE_COL_GLOBAL);
+    assign global_row_buffer_en = pair_valid && advance_ready && (buffer_phase == PHASE_ROW_GLOBAL);
+    assign butterfly_buffer_en = pair_valid && advance_ready && (buffer_phase == PHASE_BUTTERFLY);
     assign buffer_bank = (buffer_phase == PHASE_BUTTERFLY) ? BANK_BUTTERFLY :
                          (buffer_phase == PHASE_ROW_GLOBAL) ? BANK_GLOBAL_ROW :
                          (buffer_phase == PHASE_COL_GLOBAL) ? BANK_GLOBAL :
@@ -82,8 +82,8 @@ module qk_pair_streamer #(
     assign buffer_select = (buffer_phase == PHASE_BUTTERFLY) ? butterfly_select :
                            (buffer_phase == PHASE_COL_GLOBAL) ? {BUFFER_SEL_WIDTH{1'b0}} :
                            block_select;
-    assign buffer_load = pair_valid;
-    assign evict_valid = pair_valid && selected_full;
+    assign buffer_load = pair_valid && advance_ready;
+    assign evict_valid = pair_valid && advance_ready && selected_full;
     assign buffer_dout = selected_dout;
 
     pattern_controller #(

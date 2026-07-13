@@ -1,0 +1,99 @@
+[2m下午1:29:01[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\slides\implementation-report\index.tsx: Unexpected token (345:17)
+
+[0m [90m 343 |[31m   [33m<[31m[33m/[31m[33mCard[31m[33m>[31m
+ [90m 344 |[31m )[33m;[31m
+[31m[1m>[22m[31m[90m 345 |[31m                 [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m     |[31m                  [31m[1m^[22m[31m
+ [90m 346 |[31m               [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 347 |[31m               [33m<[31m[33mdiv[31m style[33m=[31m{{ fontFamily[33m:[31m font[33m.[31mmono[33m,[31m fontSize[33m:[31m [35m14[31m[33m,[31m lineHeight[33m:[31m [35m1.35[31m[33m,[31m color[33m:[31m palette[33m.[31msoft[33m,[31m textAlign[33m:[31m [32m'right'[31m }}[33m>[31m
+ [90m 348 |[31m                 [33m<[31m[33mdiv[31m[33m>[31m{row[33m.[31mmac[33m.[31mtoLocaleString()} [33mMAC[31m[33m<[31m[33m/[31m[33mdiv[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/HAO/Documents/人工智慧晶片報告/open-slide-implementation-report/slides/implementation-report/index.tsx[39m:345:17
+[33m  343|    </Card>
+  344|  );
+  345|                  </div>
+     |                   ^
+  346|                </div>
+  347|                <div style={{ fontFamily: font.mono, fontSize: 14, lineHeight: 1.35, color: palette.soft, textAlign: 'right' }}>[39m
+      at constructor (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:365:19)
+      at TypeScriptParserMixin.raise (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:6616:19)
+      at TypeScriptParserMixin.unexpected (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:6636:16)
+      at TypeScriptParserMixin.jsxParseIdentifier (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:4581:12)
+      at TypeScriptParserMixin.jsxParseNamespacedName (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:4588:23)
+      at TypeScriptParserMixin.jsxParseElementName (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:4597:21)
+      at TypeScriptParserMixin.jsxParseOpeningElementAt (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:4673:22)
+      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:4698:33)
+      at TypeScriptParserMixin.jsxParseElement (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:4761:17)
+      at TypeScriptParserMixin.parseExprAtom (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:4771:19)
+      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:11098:23)
+      at TypeScriptParserMixin.parseUpdate (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:11083:21)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:11063:23)
+      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:9854:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:10916:61)
+      at TypeScriptParserMixin.parseExprOps (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:10921:23)
+      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:10898:23)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:10848:21)
+      at C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:9792:39
+      at TypeScriptParserMixin.tryParse (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:6924:20)
+      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:9792:18)
+      at TypeScriptParserMixin.parseExpressionBase (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:10801:23)
+      at C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:10797:39
+      at TypeScriptParserMixin.allowInAnd (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:12438:16)
+      at TypeScriptParserMixin.parseExpression (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:10797:17)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:12912:23)
+      at TypeScriptParserMixin.parseStatementContent (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:9525:18)
+      at TypeScriptParserMixin.parseStatementLike (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:12784:17)
+      at TypeScriptParserMixin.parseModuleItem (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:12761:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:13333:36)
+      at TypeScriptParserMixin.parseBlockBody (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:13326:10)
+      at TypeScriptParserMixin.parseProgram (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:12639:10)
+      at TypeScriptParserMixin.parseTopLevel (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:12629:25)
+      at TypeScriptParserMixin.parse (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:14505:25)
+      at TypeScriptParserMixin.parse (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:10143:18)
+      at parse (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\parser\lib\index.js:14539:38)
+      at parser (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\core\lib\transformation\normalize-file.js:51:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\gensync\index.js:261:32)
+      at C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\gensync\index.js:223:11)
+      at C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\gensync\index.js:189:28
+      at C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+      at C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\gensync\index.js:113:33
+[2m下午8:20:30[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 2 errors:
+C:/Users/HAO/Documents/人工智慧晶片報告/open-slide-implementation-report/slides/bedmove-care-system/index.tsx?t=0:455:288: ERROR: The character ">" is not valid inside a JSX element
+C:/Users/HAO/Documents/人工智慧晶片報告/open-slide-implementation-report/slides/bedmove-care-system/index.tsx?t=0:482:177: ERROR: The character ">" is not valid inside a JSX element[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/Users/HAO/Documents/人工智慧晶片報告/open-slide-implementation-report/slides/bedmove-care-system/index.tsx?t=0[39m:436:284
+[33m  
+  [33mThe character ">" is not valid inside a JSX element[33m
+  453|          <div data-slide-loc="434:8" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+  454|            <div data-slide-loc="435:10" style={{ height: 104, borderRadius: 8, background: mint, padding: 18 }}><div data-slide-loc="435:87" style={{ fontSize: 20, color: muted, fontWeight: 800 }}>Robot</div><div data-slide-loc="435:159" style={{ fontSize: 34, fontWeight: 900 }}>R-03</div></div>
+  455|            <div data-slide-loc="436:10" style={{ height: 104, borderRadius: 8, background: '#eef4ff', padding: 18 }}><div data-slide-loc="436:92" style={{ fontSize: 20, color: muted, fontWeight: 800 }}>Route</div><div data-slide-loc="436:164" style={{ fontSize: 34, fontWeight: 900 }}>B2 -> CT</div></div>
+     |                                                                                                                                                                                                                                                                                                  ^
+  456|            <div data-slide-loc="437:10" style={{ height: 104, borderRadius: 8, background: '#fff3e8', padding: 18 }}><div data-slide-loc="437:92" style={{ fontSize: 20, color: muted, fontWeight: 800 }}>ETA</div><div data-slide-loc="437:162" style={{ fontSize: 34, fontWeight: 900 }}>7 min</div></div>
+  457|          </div>
+  
+  [33mThe character ">" is not valid inside a JSX element[33m
+  480|          </div>
+  481|          <div data-slide-loc="462:8" style={{ marginTop: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+  482|            <Card tone="tint" style={{ padding: 18, height: 170 }}><Tag>R-03</Tag><div data-slide-loc="463:80" style={{ marginTop: 18, fontSize: 28, fontWeight: 900 }}>病房 B2 -> CT</div><div data-slide-loc="463:159" style={{ marginTop: 12, height: 12, borderRadius: 8, background: line }}><div data-slide-loc="463:237" style={{ width: '64%', height: '100%', background: teal, borderRadius: 8 }} /></div></Card>
+     |                                                                                                                                                                                   ^
+  483|            <Card tone="tint" style={{ padding: 18, height: 170 }}><Tag color={green}>R-05</Tag><div data-slide-loc="464:94" style={{ marginTop: 18, fontSize: 28, fontWeight: 900 }}>待命：護理站</div><div data-slide-loc="464:168" style={{ marginTop: 12, color: muted, fontSize: 22 }}>電量 91%</div></Card>
+  484|            <Card tone="tint" style={{ padding: 18, height: 170 }}><Tag color={blue}>R-07</Tag><div data-slide-loc="465:93" style={{ marginTop: 18, fontSize: 28, fontWeight: 900 }}>充電中</div><div data-slide-loc="465:164" style={{ marginTop: 12, color: muted, fontSize: 22 }}>預計 18 分鐘</div></Card>
+  [39m
+      at failureErrorWithLog (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\esbuild\lib\main.js:1472:15)
+      at C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\esbuild\lib\main.js:755:50
+      at responseCallbacks.<computed> (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\esbuild\lib\main.js:622:9)
+      at handleIncomingPacket (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\esbuild\lib\main.js:677:12)
+      at Socket.readFromStdout (C:\Users\HAO\Documents\人工智慧晶片報告\open-slide-implementation-report\node_modules\esbuild\lib\main.js:600:7)
+      at Socket.emit (node:events:509:28)
+      at addChunk (node:internal/streams/readable:563:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+      at Readable.push (node:internal/streams/readable:394:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)

@@ -58,6 +58,10 @@ module tb_attention_compare;
     wire [COUNT_WIDTH-1:0] sparse_mac_count;
     wire sparse_score_valid;
     wire [SCORE_WIDTH-1:0] sparse_attention_score;
+    wire sparse_context_valid;
+    wire [IDX_WIDTH-1:0] sparse_context_q_idx;
+    wire [FEATURE_IDX_WIDTH-1:0] sparse_context_feature_idx;
+    wire [DATA_WIDTH+8-1:0] sparse_context_value;
     wire [1:0] buffer_phase;
     wire [1:0] buffer_bank;
 
@@ -65,6 +69,7 @@ module tb_attention_compare;
     integer case_errors;
     integer expected_count;
     integer observed_count;
+    integer context_observed_count;
     integer i;
     integer q_expected [0:20000];
     integer k_expected [0:20000];
@@ -112,6 +117,7 @@ module tb_attention_compare;
         .rst_n(rst_n),
         .start(sparse_start),
         .score_ready(1'b1),
+        .context_ready(1'b1),
         .cfg_seq_len(current_seq_len),
         .mode(sparse_mode),
         .qkv_we(qkv_we),
@@ -133,7 +139,11 @@ module tb_attention_compare;
         .cycle_count(sparse_cycle_count),
         .mac_count(sparse_mac_count),
         .score_valid(sparse_score_valid),
-        .attention_score(sparse_attention_score)
+        .attention_score(sparse_attention_score),
+        .context_valid(sparse_context_valid),
+        .context_q_idx(sparse_context_q_idx),
+        .context_feature_idx(sparse_context_feature_idx),
+        .context_value(sparse_context_value)
     );
 
     initial begin
@@ -418,6 +428,143 @@ module tb_attention_compare;
         end
     endfunction
 
+    function expected_sparse_pair;
+        input integer q;
+        input integer k;
+        input [2:0] mode_value;
+        integer q_block;
+        integer k_block;
+        integer global_block;
+        integer local_offset;
+        integer distance;
+        begin
+            q_block = (q / WINDOW_SIZE) * WINDOW_SIZE;
+            k_block = (k / WINDOW_SIZE) * WINDOW_SIZE;
+            global_block = (GLOBAL_INDEX / WINDOW_SIZE) * WINDOW_SIZE;
+            local_offset = k - q_block;
+            distance = q ^ k;
+            expected_sparse_pair = 1'b0;
+            if ((q < current_seq_len) && (k < current_seq_len)) begin
+                if (mode_value == MODE_SLIDING) begin
+                    expected_sparse_pair = (q_block == k_block);
+                end else if (mode_value == MODE_DILATED) begin
+                    expected_sparse_pair = (q_block == k_block) &&
+                                           ((local_offset % DILATION) == 0);
+                end else if (mode_value == MODE_SLIDING_GLOBAL) begin
+                    expected_sparse_pair = (q_block == k_block) ||
+                                           ((k == GLOBAL_INDEX) && (q_block != global_block)) ||
+                                           ((q == GLOBAL_INDEX) && (k_block != global_block));
+                end else if (mode_value == MODE_BUTTERFLY) begin
+                    expected_sparse_pair = (distance != 0) &&
+                                           ((distance & (distance - 1)) == 0);
+                end
+            end
+        end
+    endfunction
+
+    function [15:0] expected_exp_lut;
+        input integer x;
+        begin
+            case (x)
+                0: expected_exp_lut = 16'd65535;
+                1: expected_exp_lut = 16'd24109;
+                2: expected_exp_lut = 16'd8869;
+                3: expected_exp_lut = 16'd3263;
+                4: expected_exp_lut = 16'd1200;
+                5: expected_exp_lut = 16'd441;
+                6: expected_exp_lut = 16'd162;
+                7: expected_exp_lut = 16'd60;
+                8: expected_exp_lut = 16'd22;
+                9: expected_exp_lut = 16'd8;
+                10: expected_exp_lut = 16'd3;
+                11: expected_exp_lut = 16'd1;
+                default: expected_exp_lut = 16'd0;
+            endcase
+        end
+    endfunction
+
+    function [15:0] expected_context_q8_8;
+        input integer q;
+        input integer feature;
+        input [2:0] mode_value;
+        integer k;
+        reg [SCORE_WIDTH-1:0] max_value;
+        reg [SCORE_WIDTH-1:0] score_value;
+        reg [15:0] weight;
+        reg [31:0] weight_total;
+        reg [63:0] weighted_total;
+        begin
+            max_value = {SCORE_WIDTH{1'b0}};
+            for (k = 0; k < current_seq_len; k = k + 1) begin
+                if (expected_sparse_pair(q, k, mode_value)) begin
+                    score_value = expected_sparse_qk_score(q, k);
+                    if (score_value > max_value) begin
+                        max_value = score_value;
+                    end
+                end
+            end
+
+            weight_total = 0;
+            weighted_total = 0;
+            for (k = 0; k < current_seq_len; k = k + 1) begin
+                if (expected_sparse_pair(q, k, mode_value)) begin
+                    score_value = expected_sparse_qk_score(q, k);
+                    weight = expected_exp_lut((max_value - score_value) >> 1);
+                    weight_total = weight_total + weight;
+                    weighted_total = weighted_total +
+                                     (weight * v_feature_expected[feature_flat_index(k, feature)]);
+                end
+            end
+
+            if (weight_total == 0) begin
+                expected_context_q8_8 = 16'd0;
+            end else begin
+                expected_context_q8_8 = (weighted_total << 8) / weight_total;
+            end
+        end
+    endfunction
+
+    task check_context;
+        input [IDX_WIDTH-1:0] q_actual;
+        input [FEATURE_IDX_WIDTH-1:0] feature_actual;
+        input [15:0] value_actual;
+        input [2:0] mode_value;
+        input [127:0] label;
+        integer expected_q;
+        integer expected_feature;
+        reg [15:0] expected_value;
+        begin
+            expected_q = context_observed_count / FEATURE_DIM;
+            expected_feature = context_observed_count % FEATURE_DIM;
+            expected_value = expected_context_q8_8(expected_q, expected_feature, mode_value);
+            if ((q_actual !== expected_q) || (feature_actual !== expected_feature)) begin
+                $display(
+                    "ERROR,%0s,context_index,index=%0d,expected=(%0d,%0d),actual=(%0d,%0d)",
+                    label,
+                    context_observed_count,
+                    expected_q,
+                    expected_feature,
+                    q_actual,
+                    feature_actual
+                );
+                errors = errors + 1;
+                case_errors = case_errors + 1;
+            end else if (value_actual !== expected_value) begin
+                $display(
+                    "ERROR,%0s,context_value,q=%0d,feature=%0d,expected=%0d,actual=%0d",
+                    label,
+                    q_actual,
+                    feature_actual,
+                    expected_value,
+                    value_actual
+                );
+                errors = errors + 1;
+                case_errors = case_errors + 1;
+            end
+            context_observed_count = context_observed_count + 1;
+        end
+    endtask
+
     task run_full_case;
         begin
             case_errors = 0;
@@ -462,6 +609,7 @@ module tb_attention_compare;
             end
 
             observed_count = 0;
+            context_observed_count = 0;
             sparse_mode = mode;
             @(negedge clk);
             sparse_start = 1'b1;
@@ -474,10 +622,30 @@ module tb_attention_compare;
                 if (sparse_pair_valid) begin
                     check_pair(sparse_q_idx, sparse_k_idx, sparse_attention_score, label);
                 end
+                if (sparse_context_valid) begin
+                    check_context(
+                        sparse_context_q_idx,
+                        sparse_context_feature_idx,
+                        sparse_context_value,
+                        mode,
+                        label
+                    );
+                end
             end
 
             if (observed_count != expected_count) begin
                 $display("ERROR,%0s,count_mismatch,expected=%0d,actual=%0d", label, expected_count, observed_count);
+                errors = errors + 1;
+                case_errors = case_errors + 1;
+            end
+
+            if (context_observed_count != (current_seq_len * FEATURE_DIM)) begin
+                $display(
+                    "ERROR,%0s,context_count,expected=%0d,actual=%0d",
+                    label,
+                    current_seq_len * FEATURE_DIM,
+                    context_observed_count
+                );
                 errors = errors + 1;
                 case_errors = case_errors + 1;
             end

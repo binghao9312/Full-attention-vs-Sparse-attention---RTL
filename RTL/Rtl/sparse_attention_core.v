@@ -11,12 +11,16 @@ module sparse_attention_core #(
     parameter FEATURE_DIM = 4,
     parameter FEATURE_IDX_WIDTH = 2,
     parameter DATA_WIDTH = 8,
-    parameter SCORE_WIDTH = 32
+    parameter SCORE_WIDTH = 32,
+    parameter SCORE_SCALE_SHIFT = 1,
+    parameter OUTPUT_FRAC_BITS = 8,
+    parameter CONTEXT_WIDTH = DATA_WIDTH + OUTPUT_FRAC_BITS
 ) (
     input wire clk,
     input wire rst_n,
     input wire start,
     input wire score_ready,
+    input wire context_ready,
     input wire [IDX_WIDTH-1:0] cfg_seq_len,
     input wire [2:0] mode,
     input wire qkv_we,
@@ -38,7 +42,11 @@ module sparse_attention_core #(
     output wire [COUNT_WIDTH-1:0] cycle_count,
     output wire [COUNT_WIDTH-1:0] mac_count,
     output reg score_valid,
-    output reg [SCORE_WIDTH-1:0] attention_score
+    output reg [SCORE_WIDTH-1:0] attention_score,
+    output wire context_valid,
+    output wire [IDX_WIDTH-1:0] context_q_idx,
+    output wire [FEATURE_IDX_WIDTH-1:0] context_feature_idx,
+    output wire [CONTEXT_WIDTH-1:0] context_value
 );
     wire raw_done;
     wire raw_pair_valid;
@@ -46,6 +54,7 @@ module sparse_attention_core #(
     wire [IDX_WIDTH-1:0] raw_k_idx;
     reg done_delay0;
     reg done_delay1;
+    reg score_collection_done;
     wire score_valid_pipe;
     wire [IDX_WIDTH-1:0] score_q_idx_pipe;
     wire [IDX_WIDTH-1:0] score_k_idx_pipe;
@@ -53,6 +62,12 @@ module sparse_attention_core #(
     wire [FEATURE_DIM*DATA_WIDTH-1:0] q_feature_vector;
     wire [FEATURE_DIM*DATA_WIDTH-1:0] k_feature_vector;
     wire [FEATURE_DIM*DATA_WIDTH-1:0] v_feature_vector;
+    wire [IDX_WIDTH-1:0] softmax_v_read_idx;
+    wire softmax_score_ready;
+    wire pipeline_ready;
+    wire context_done;
+
+    assign pipeline_ready = score_ready && softmax_score_ready;
 
     qk_pair_streamer #(
         .SEQ_LEN(SEQ_LEN),
@@ -66,7 +81,7 @@ module sparse_attention_core #(
         .clk(clk),
         .rst_n(rst_n),
         .start(start),
-        .advance_ready(score_ready),
+        .advance_ready(pipeline_ready),
         .cfg_seq_len(cfg_seq_len),
         .mode(mode),
         .done(raw_done),
@@ -88,7 +103,7 @@ module sparse_attention_core #(
         .clk(clk),
         .rst_n(rst_n),
         .clear(start),
-        .pair_valid(raw_pair_valid),
+        .pair_valid(raw_pair_valid && pipeline_ready),
         .pair_count(pair_count),
         .cycle_count(cycle_count),
         .mac_count(mac_count)
@@ -109,7 +124,7 @@ module sparse_attention_core #(
         .qkv_data_in(qkv_data_in),
         .q_read_idx(raw_q_idx),
         .k_read_idx(raw_k_idx),
-        .v_read_idx(raw_k_idx),
+        .v_read_idx(softmax_v_read_idx),
         .q_feature_vector(q_feature_vector),
         .k_feature_vector(k_feature_vector),
         .v_feature_vector(v_feature_vector)
@@ -123,7 +138,7 @@ module sparse_attention_core #(
     ) u_qk_dot_accumulator (
         .clk(clk),
         .rst_n(rst_n),
-        .advance_ready(score_ready),
+        .advance_ready(pipeline_ready),
         .pair_valid(raw_pair_valid),
         .q_idx(raw_q_idx),
         .k_idx(raw_k_idx),
@@ -133,6 +148,37 @@ module sparse_attention_core #(
         .score_q_idx(score_q_idx_pipe),
         .score_k_idx(score_k_idx_pipe),
         .attention_score(attention_score_pipe)
+    );
+
+    sparse_softmax_sv #(
+        .SEQ_LEN(SEQ_LEN),
+        .IDX_WIDTH(IDX_WIDTH),
+        .FEATURE_DIM(FEATURE_DIM),
+        .FEATURE_IDX_WIDTH(FEATURE_IDX_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH),
+        .SCORE_WIDTH(SCORE_WIDTH),
+        .SCORE_SCALE_SHIFT(SCORE_SCALE_SHIFT),
+        .OUTPUT_FRAC_BITS(OUTPUT_FRAC_BITS),
+        .CONTEXT_WIDTH(CONTEXT_WIDTH)
+    ) u_sparse_softmax_sv (
+        .clk(clk),
+        .rst_n(rst_n),
+        .start(start),
+        .scores_done(score_collection_done),
+        .cfg_seq_len(cfg_seq_len),
+        .score_valid(score_valid_pipe),
+        .score_ready(softmax_score_ready),
+        .score_q_idx(score_q_idx_pipe),
+        .score_k_idx(score_k_idx_pipe),
+        .score_value(attention_score_pipe),
+        .v_read_idx(softmax_v_read_idx),
+        .v_feature_vector(v_feature_vector),
+        .context_ready(context_ready),
+        .context_valid(context_valid),
+        .context_q_idx(context_q_idx),
+        .context_feature_idx(context_feature_idx),
+        .context_value(context_value),
+        .done(context_done)
     );
 
     always @(posedge clk or negedge rst_n) begin
@@ -145,12 +191,18 @@ module sparse_attention_core #(
             attention_score <= {SCORE_WIDTH{1'b0}};
             done_delay0 <= 1'b0;
             done_delay1 <= 1'b0;
+            score_collection_done <= 1'b0;
         end
         else begin
-            if (score_ready) begin
-                done <= done_delay1;
+            done <= context_done;
+            score_collection_done <= 1'b0;
+            pair_valid <= 1'b0;
+            score_valid <= 1'b0;
+
+            if (pipeline_ready) begin
                 done_delay1 <= done_delay0;
                 done_delay0 <= raw_done;
+                score_collection_done <= done_delay1;
                 pair_valid <= score_valid_pipe;
                 score_valid <= score_valid_pipe;
                 q_idx <= score_q_idx_pipe;
@@ -162,6 +214,7 @@ module sparse_attention_core #(
                 done <= 1'b0;
                 done_delay0 <= 1'b0;
                 done_delay1 <= 1'b0;
+                score_collection_done <= 1'b0;
                 pair_valid <= 1'b0;
                 score_valid <= 1'b0;
                 q_idx <= {IDX_WIDTH{1'b0}};

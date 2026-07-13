@@ -1,0 +1,765 @@
+﻿# Review package: 13eeca1..e096ef4
+
+## Commits
+
+e096ef4 docs: implement QK Dot Accumulator, Softmax & Context, and Stats & Result FIFO SVG layouts in architecture view
+
+## Files changed
+
+ RTL/Rtl/sparse_attention_architecture.html | 730 +++++++++++++++++++++++++++++
+ 1 file changed, 730 insertions(+)
+
+## Diff
+
+diff --git a/RTL/Rtl/sparse_attention_architecture.html b/RTL/Rtl/sparse_attention_architecture.html
+index 920b459..263cfb5 100644
+--- a/RTL/Rtl/sparse_attention_architecture.html
++++ b/RTL/Rtl/sparse_attention_architecture.html
+@@ -870,20 +870,750 @@
+                             <p><strong>qkv_feature_mem</strong> 鞎痊摮???Token ??Query?ey?alue ?孵噩??嚗身閮??∠銝??函???Dual-Port 擃?SRAM 撖虫?嚗Ⅱ靽?撖思?銵?銝撟唾?靘?蝯阡?蝛?蝞??/p>
+                             <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
+                                 <li><strong>?函? SRAM ?孵?:</strong> ? <code>q_mem</code> (Query), <code>k_mem</code> (Key), <code>v_mem</code> (Value)????SRAM 憭批???128 words x 64-bit (隞?FEATURE_DIM = 64, ??蝎曉漲??8-bit ?箔?)??/li>
+                                 <li><strong>撖怠頝臬? (Write Path):</strong> ??<code>Write Controller & Demux</code> ?交憭?舀??神?亥?????<code>qkv_we</code> (撖怠?渲)??code>qkv_sel</code> (SRAM?豢?) 撠??<code>qkv_data_in</code> 靘? <code>qkv_token_idx</code> ??<code>qkv_feature_idx</code> 摰?撖怠??閮擃?/li>
+                                 <li><strong>銝西?霈?楝敺?(Read Path):</strong> 瘜冽???蝞?嚗K Pair Streamer ?Ｙ???<code>q_read_idx</code>, <code>k_read_idx</code>, <code>v_read_idx</code> ?臬????銝??園?嚗?????望??找蒂銵撓?箏??? <code>FEATURE_DIM</code> 蝬剖漲?孵噩????/li>
+                             </ul>
+                             <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">???銝??函? SRAM 銝行?湧???瘨?孵噩摮???瑽扯?蝒?(Structural Hazard)嚗蝞∠???MAC ???憭折撖研?/p>
+                         </div>
+                     </div>
+                 `;
++            } else if (tabId === 'dot_accum') {
++                canvasArea.innerHTML = `
++                    <div class="tab-content-wrapper" style="width:100%; height:100%;">
++                        <svg width="100%" height="100%" viewBox="0 0 900 580" fill="none" xmlns="http://www.w3.org/2000/svg">
++                          <defs>
++                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
++                              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8"/>
++                            </marker>
++                            <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
++                              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#3b82f6"/>
++                            </marker>
++                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
++                              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255, 255, 255, 0.02)" stroke-width="1"/>
++                            </pattern>
++                          </defs>
++
++                          <rect width="100%" height="100%" fill="url(#grid)" />
++
++                          <!-- Outer container -->
++                          <rect x="15" y="15" width="870" height="550" fill="none" stroke="rgba(59, 130, 246, 0.15)" stroke-width="2" stroke-dasharray="6 6" rx="12" />
++                          <text x="30" y="40" fill="rgba(59, 130, 246, 0.4)" font-family="'Share Tech Mono', monospace" font-size="14" style="letter-spacing: 1.5px;">QK_DOT_ACCUMULATOR DETAILS</text>
++
++                          <!-- Stage 0 Label -->
++                          <text x="240" y="55" fill="#3b82f6" font-family="'Share Tech Mono', monospace" font-weight="bold" font-size="12" text-anchor="middle">STAGE 0: Input & Multipliers</text>
++                          <!-- Stage 1 Label -->
++                          <text x="550" y="55" fill="#3b82f6" font-family="'Share Tech Mono', monospace" font-weight="bold" font-size="12" text-anchor="middle">STAGE 1: Product Registers & Adder Tree</text>
++                          <!-- Stage 2 Label -->
++                          <text x="815" y="55" fill="#3b82f6" font-family="'Share Tech Mono', monospace" font-weight="bold" font-size="12" text-anchor="middle">STAGE 2: Output</text>
++
++                          <!-- Vertical stage partition lines -->
++                          <line x1="390" y1="45" x2="390" y2="495" stroke="rgba(59, 130, 246, 0.15)" stroke-dasharray="4 4" />
++                          <line x1="710" y1="45" x2="710" y2="495" stroke="rgba(59, 130, 246, 0.15)" stroke-dasharray="4 4" />
++
++                          <!-- Q Feature Vector Inputs (Top Left) -->
++                          <g class="signal-group">
++                            <rect x="30" y="70" width="100" height="70" rx="4" fill="rgba(16, 185, 129, 0.05)" stroke="#10b981" stroke-width="1" />
++                            <text x="80" y="90" fill="#10b981" font-weight="bold" font-size="10" font-family="'Inter', sans-serif" text-anchor="middle">q_feature_vector</text>
++                            <text x="80" y="108" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">[31:0] (4x8b)</text>
++                            <text x="80" y="125" fill="#94a3b8" font-size="8" font-family="'Inter', sans-serif" text-anchor="middle">From Feature Mem</text>
++                          </g>
++
++                          <!-- K Feature Vector Inputs (Bottom Left) -->
++                          <g class="signal-group">
++                            <rect x="30" y="325" width="100" height="70" rx="4" fill="rgba(16, 185, 129, 0.05)" stroke="#10b981" stroke-width="1" />
++                            <text x="80" y="345" fill="#10b981" font-weight="bold" font-size="10" font-family="'Inter', sans-serif" text-anchor="middle">k_feature_vector</text>
++                            <text x="80" y="363" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">[31:0] (4x8b)</text>
++                            <text x="80" y="380" fill="#94a3b8" font-size="8" font-family="'Inter', sans-serif" text-anchor="middle">From Feature Mem</text>
++                          </g>
++
++                          <!-- Split signals & Stage 0 Registers -->
++                          <!-- Q Reg -->
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="175" y="70" width="125" height="70" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <polygon points="175,130 180,135 185,130" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="237" y="90" fill="#3b82f6" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">stage0_q_feat_reg</text>
++                            <text x="237" y="110" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace" text-anchor="middle">[31:0]</text>
++                            <text x="237" y="128" fill="rgba(248, 250, 252, 0.5)" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">Reg (CLK & ADV)</text>
++                          </g>
++
++                          <!-- K Reg -->
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="175" y="325" width="125" height="70" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <polygon points="175,385 180,390 185,385" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="237" y="345" fill="#3b82f6" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">stage0_k_feat_reg</text>
++                            <text x="237" y="365" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace" text-anchor="middle">[31:0]</text>
++                            <text x="237" y="383" fill="rgba(248, 250, 252, 0.5)" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">Reg (CLK & ADV)</text>
++                          </g>
++
++                          <!-- Multiplier Lanes -->
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="335" y="70" width="100" height="40" rx="6" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="385" y="94" fill="#3b82f6" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">Multiplier Lane 0</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="335" y="155" width="100" height="40" rx="6" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="385" y="179" fill="#3b82f6" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">Multiplier Lane 1</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="335" y="240" width="100" height="40" rx="6" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="385" y="264" fill="#3b82f6" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">Multiplier Lane 2</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="335" y="325" width="100" height="40" rx="6" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="385" y="349" fill="#3b82f6" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">Multiplier Lane 3</text>
++                          </g>
++
++                          <!-- Stage 1 Product registers -->
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="475" y="70" width="95" height="40" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <polygon points="475,90 480,95 485,90" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="522" y="94" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">product_reg[0]</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="475" y="155" width="95" height="40" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <polygon points="475,175 480,180 485,175" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="522" y="179" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">product_reg[1]</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="475" y="240" width="95" height="40" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <polygon points="475,260 480,265 485,260" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="522" y="264" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">product_reg[2]</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="475" y="325" width="95" height="40" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <polygon points="475,345 480,350 485,345" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="522" y="349" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">product_reg[3]</text>
++                          </g>
++
++                          <!-- Adder Tree -->
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <circle cx="615" cy="132" r="20" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="615" y="136" fill="#3b82f6" font-size="16" font-weight="bold" text-anchor="middle">+</text>
++                            <text x="615" y="105" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">sum01</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <circle cx="615" cy="302" r="20" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="615" y="306" fill="#3b82f6" font-size="16" font-weight="bold" text-anchor="middle">+</text>
++                            <text x="615" y="275" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">sum23</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <circle cx="690" cy="217" r="22" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="2" />
++                            <text x="690" y="222" fill="#3b82f6" font-size="18" font-weight="bold" text-anchor="middle">+</text>
++                            <text x="690" y="187" fill="#3b82f6" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">score_sum</text>
++                          </g>
++
++                          <!-- Stage 2 Registers -->
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="760" y="187" width="105" height="60" rx="4" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="2" />
++                            <polygon points="760,237 765,242 770,237" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="812.5" y="207" fill="#3b82f6" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">attention_score</text>
++                            <text x="812.5" y="225" fill="#f8fafc" font-size="10" font-family="'Share Tech Mono', monospace" text-anchor="middle">[31:0]</text>
++                            <text x="812.5" y="240" fill="rgba(248, 250, 252, 0.5)" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">Reg (CLK & ADV)</text>
++                          </g>
++
++                          <!-- Index & Valid Paths (Bottom) -->
++                          <g class="signal-group">
++                            <text x="35" y="440" fill="#94a3b8" font-size="9" font-family="'Share Tech Mono', monospace">q_idx [7:0], k_idx [7:0]</text>
++                            <text x="35" y="455" fill="#94a3b8" font-size="9" font-family="'Share Tech Mono', monospace">pair_valid</text>
++                            <path class="signal-line" d="M 130,435 L 175,435" marker-end="url(#arrow)" />
++                            <path class="signal-line" d="M 130,450 L 175,450" marker-end="url(#arrow)" />
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="175" y="420" width="125" height="45" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <polygon points="175,455 180,460 185,455" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="237.5" y="437" fill="#3b82f6" font-size="8" font-family="'Inter', sans-serif" text-anchor="middle">stage0_q/k_idx</text>
++                            <text x="237.5" y="452" fill="#3b82f6" font-size="8" font-family="'Inter', sans-serif" text-anchor="middle">stage0_valid</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="475" y="420" width="125" height="45" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <polygon points="475,455 480,460 485,455" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="537.5" y="437" fill="#3b82f6" font-size="8" font-family="'Inter', sans-serif" text-anchor="middle">stage1_q/k_idx</text>
++                            <text x="537.5" y="452" fill="#3b82f6" font-size="8" font-family="'Inter', sans-serif" text-anchor="middle">stage1_valid</text>
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="760" y="420" width="105" height="45" rx="4" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" stroke-width="2" />
++                            <polygon points="760,455 765,460 770,455" fill="none" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="812.5" y="437" fill="#3b82f6" font-size="8" font-family="'Inter', sans-serif" text-anchor="middle">score_q/k_idx</text>
++                            <text x="812.5" y="452" fill="#3b82f6" font-size="8" font-family="'Inter', sans-serif" text-anchor="middle">score_valid</text>
++                          </g>
++
++                          <!-- Connections -->
++                          <path class="signal-line" d="M 130,105 L 175,105" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 130,360 L 175,360" marker-end="url(#arrow)" />
++
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 300,85 L 335,85" marker-end="url(#arrow)" />
++                            <text x="315" y="80" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">Q0</text>
++                            <path class="signal-line" d="M 300,105 L 315,105 L 315,170 L 335,170" marker-end="url(#arrow)" />
++                            <text x="318" y="150" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">Q1</text>
++                            <path class="signal-line" d="M 300,120 L 320,120 L 320,250 L 335,250" marker-end="url(#arrow)" />
++                            <text x="323" y="230" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">Q2</text>
++                            <path class="signal-line" d="M 300,135 L 325,135 L 325,335 L 335,335" marker-end="url(#arrow)" />
++                            <text x="328" y="315" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">Q3</text>
++                          </g>
++
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 300,340 L 325,340 L 325,95 L 335,95" marker-end="url(#arrow)" />
++                            <text x="328" y="115" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">K0</text>
++                            <path class="signal-line" d="M 300,355 L 320,355 L 320,180 L 335,180" marker-end="url(#arrow)" />
++                            <text x="323" y="195" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">K1</text>
++                            <path class="signal-line" d="M 300,370 L 315,370 L 315,260 L 335,260" marker-end="url(#arrow)" />
++                            <text x="323" y="275" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">K2</text>
++                            <path class="signal-line" d="M 300,385 L 335,385" marker-end="url(#arrow)" />
++                            <text x="315" y="380" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">K3</text>
++                          </g>
++
++                          <path class="signal-line" d="M 435,90 L 475,90" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 435,175 L 475,175" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 435,260 L 475,260" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 435,345 L 475,345" marker-end="url(#arrow)" />
++
++                          <path class="signal-line" d="M 570,90 L 585,90 L 585,120 L 595,120" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 570,175 L 585,175 L 585,142 L 595,142" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 570,260 L 585,260 L 585,290 L 595,290" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 570,325 L 585,325 L 585,312 L 595,312" marker-end="url(#arrow)" />
++
++                          <path class="signal-line" d="M 635,132 L 655,132 L 655,205 L 668,205" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 635,302 L 655,302 L 655,229 L 668,229" marker-end="url(#arrow)" />
++
++                          <path class="signal-line" d="M 712,217 L 760,217" marker-end="url(#arrow)" />
++
++                          <path class="signal-line" d="M 300,442 L 475,442" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 600,442 L 760,442" marker-end="url(#arrow)" />
++
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 865,217 L 890,217" marker-end="url(#arrow)" />
++                            <text x="880" y="207" fill="#3b82f6" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">attention_score</text>
++                          </g>
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 865,442 L 890,442" marker-end="url(#arrow)" />
++                            <text x="880" y="432" fill="#3b82f6" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">score_q/k_idx</text>
++                          </g>
++
++                          <line x1="30" y1="495" x2="870" y2="495" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
++                          
++                          <g class="signal-group">
++                            <circle cx="50" cy="515" r="4" fill="#fbbf24" />
++                            <text x="60" y="519" fill="#fbbf24" font-size="10" font-family="'Share Tech Mono', monospace">clk</text>
++                          </g>
++                          <g class="signal-group">
++                            <circle cx="50" cy="540" r="4" fill="#fbbf24" />
++                            <text x="60" y="544" fill="#fbbf24" font-size="10" font-family="'Share Tech Mono', monospace">advance_ready</text>
++                          </g>
++
++                          <path class="signal-line" d="M 140,528 L 810,528" stroke="#fbbf24" stroke-width="1" stroke-dasharray="2 2" />
++                          <rect x="110" y="508" width="80" height="40" rx="3" fill="rgba(251, 191, 36, 0.1)" stroke="#fbbf24" stroke-width="1" />
++                          <text x="150" y="532" fill="#fbbf24" font-size="10" font-weight="bold" font-family="'Inter', sans-serif" text-anchor="middle">AND Gate</text>
++
++                          <path class="signal-line" d="M 237,528 L 237,465" stroke="#fbbf24" stroke-width="1" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 237,420 L 237,140" stroke="#fbbf24" stroke-width="1" />
++                          <circle cx="237" cy="442" r="3" fill="#fbbf24" />
++
++                          <path class="signal-line" d="M 537,528 L 537,465" stroke="#fbbf24" stroke-width="1" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 537,420 L 537,365" stroke="#fbbf24" stroke-width="1" marker-end="url(#arrow)" />
++                          <circle cx="537" cy="442" r="3" fill="#fbbf24" />
++                          
++                          <path class="signal-line" d="M 812,528 L 812,465" stroke="#fbbf24" stroke-width="1" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 812,420 L 812,247" stroke="#fbbf24" stroke-width="1" marker-end="url(#arrow)" />
++                          <circle cx="812" cy="442" r="3" fill="#fbbf24" />
++
++                          <path class="signal-line" d="M 90,515 L 110,515" stroke="#fbbf24" />
++                          <path class="signal-line" d="M 100,540 L 110,540" stroke="#fbbf24" />
++                        </svg>
++                    </div>
++                `;
++
++                infoArea.innerHTML = `
++                    <div class="tab-content-wrapper">
++                        <div class="info-header">
++                            <h2 class="info-title">
++                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#3b82f6; box-shadow: 0 0 8px #3b82f6;"></span>
++                                QK Dot Accumulator (暺?蝞∠?) 閮剛?蝝啁?
++                            </h2>
++                        </div>
++                        <div class="info-body">
++                            <p><strong>qk_dot_accumulator</strong> ?臭???????蝞∠????拚銋?暺?閮??桀?嚗???冽?典銝?望??扯?蝞?Query ????Key ??撠?蝬剖漲??蝛?銝血銝??望?摰?蝝臬??誑銝?嗡蜓閬恣蝺???(Pipeline Stages) ?祕雿暺?</p>
++                            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
++                                <li><strong>Stage 0 (頛詨??瘜):</strong> ??怠???<code>stage0_q_feature_vector</code> ??<code>stage0_k_feature_vector</code> 敹怠?敺??園?霈?箇? Q/K ?孵噩??嚗???32-bit嚗?? 4 ??8-bit ??潘??敺?4 蝯蝡?瘜 <code>Multiplier Lane 0~3</code> 撟唾?閮? Q ??K ??蝬剖漲銋???/li>
++                                <li><strong>Stage 1 (?怠???瘜邦):</strong> 銋?蝯??怠???32-bit ?怠???<code>product_reg [0:3]</code>嚗蒂蝡?鈭???璅?(Adder Tree)?洵銝蝝?瘜?閮? <code>(0+1)</code> ??<code>(2+3)</code>嚗洵鈭????典??拍??敞??蝯?蝛???<code>score_sum</code>??/li>
++                                <li><strong>Stage 2 (頛詨?怠?):</strong> ?其?銝?????窒嚗???<code>advance_ready</code> ?粹??餃像嚗?蝛???<code>score_sum</code> 撠◤???啗撓?箸摮 <code>attention_score</code> 銝哨???頛詨撠???<code>score_q_idx</code>??code>score_k_idx</code> 隞亙? <code>score_valid</code> 璅???/li>
++                                <li><strong>蝞∠????批:</strong> ??恣蝺??怠??函???<code>clk</code> ??<code>advance_ready</code> ?勗??批?敺???Softmax ?瘜敹???<code>advance_ready</code> ??雿?雿踵??蝛恣蝺????????嚗??踹??豢??箏仃??/li>
++                            </ul>
++                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">?祆芋蝯?典?蝔梁?璅寧????其誑撟唾﹛?頝臬? (Critical Path) 撱園嚗擃??雿?隞蝣箔?暺?閮??迤蝣箸扯?????/p>
++                        </div>
++                    </div>
++                `;
++            } else if (tabId === 'softmax_context') {
++                canvasArea.innerHTML = `
++                    <div class="tab-content-wrapper" style="width:100%; height:100%;">
++                        <svg width="100%" height="100%" viewBox="0 0 900 580" fill="none" xmlns="http://www.w3.org/2000/svg">
++                          <defs>
++                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
++                              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8"/>
++                            </marker>
++                            <marker id="arrow-pink" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
++                              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#ec4899"/>
++                            </marker>
++                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
++                              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255, 255, 255, 0.02)" stroke-width="1"/>
++                            </pattern>
++                          </defs>
++
++                          <rect width="100%" height="100%" fill="url(#grid)" />
++
++                          <!-- Outer container boundary -->
++                          <rect x="15" y="15" width="870" height="550" fill="none" stroke="rgba(236, 72, 153, 0.15)" stroke-width="2" stroke-dasharray="6 6" rx="12" />
++                          <text x="30" y="40" fill="rgba(236, 72, 153, 0.4)" font-family="'Share Tech Mono', monospace" font-size="14" style="letter-spacing: 1.5px;">SOFTMAX_CONTEXT DETAILS</text>
++
++                          <!-- FSM Section Header -->
++                          <text x="200" y="55" fill="#ec4899" font-family="'Share Tech Mono', monospace" font-weight="bold" font-size="12" text-anchor="middle">FSM STATE CONTROLLER</text>
++                          <!-- Datapath Section Header -->
++                          <text x="650" y="55" fill="#ec4899" font-family="'Share Tech Mono', monospace" font-weight="bold" font-size="12" text-anchor="middle">DATAPATH & CALCULATIONS</text>
++
++                          <!-- Vertical divider line -->
++                          <line x1="410" y1="45" x2="410" y2="540" stroke="rgba(236, 72, 153, 0.15)" stroke-dasharray="4 4" />
++
++                          <!-- ================= LEFT HALF: FSM STATES ================= -->
++                          <!-- State: COLLECT (0) -->
++                          <g class="module-box soft">
++                            <circle cx="120" cy="120" r="32" fill="rgba(236, 72, 153, 0.05)" stroke="#ec4899" stroke-width="2" />
++                            <text x="120" y="123" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">COLLECT</text>
++                            <text x="120" y="135" fill="#94a3b8" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">STATE_0</text>
++                          </g>
++
++                          <!-- State: UPDATE (1) -->
++                          <g class="module-box soft">
++                            <circle cx="310" cy="120" r="32" fill="rgba(236, 72, 153, 0.05)" stroke="#ec4899" stroke-width="2" />
++                            <text x="310" y="123" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">UPDATE</text>
++                            <text x="310" y="135" fill="#94a3b8" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">STATE_1</text>
++                          </g>
++
++                          <!-- State: PREPARE (2) -->
++                          <g class="module-box soft">
++                            <circle cx="310" cy="275" r="32" fill="rgba(236, 72, 153, 0.05)" stroke="#ec4899" stroke-width="2" />
++                            <text x="310" y="278" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">PREPARE</text>
++                            <text x="310" y="290" fill="#94a3b8" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">STATE_2</text>
++                          </g>
++
++                          <!-- State: DIVIDE (3) -->
++                          <g class="module-box soft">
++                            <circle cx="310" cy="430" r="32" fill="rgba(236, 72, 153, 0.05)" stroke="#ec4899" stroke-width="2" />
++                            <text x="310" y="433" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">DIVIDE</text>
++                            <text x="310" y="445" fill="#94a3b8" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">STATE_3</text>
++                          </g>
++
++                          <!-- State: OUTPUT (4) -->
++                          <g class="module-box soft">
++                            <circle cx="120" cy="275" r="32" fill="rgba(236, 72, 153, 0.05)" stroke="#ec4899" stroke-width="2" />
++                            <text x="120" y="278" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">OUTPUT</text>
++                            <text x="120" y="290" fill="#94a3b8" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">STATE_4</text>
++                          </g>
++
++                          <!-- FSM Transitions -->
++                          <path class="signal-line" d="M 152,120 L 278,120" stroke="#ec4899" marker-end="url(#arrow-pink)" />
++                          <text x="215" y="112" fill="#ec4899" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">score_valid</text>
++
++                          <path class="signal-line" d="M 285,100 C 240,75 180,75 135,100" stroke="#ec4899" marker-end="url(#arrow-pink)" />
++                          <text x="210" y="72" fill="#ec4899" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">update_feat != LAST</text>
++
++                          <path class="signal-line" d="M 142,143 L 285,255" stroke="#94a3b8" marker-end="url(#arrow)" />
++                          <text x="220" y="195" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle" transform="rotate(38, 220, 195)">scores_done</text>
++
++                          <path class="signal-line" d="M 310,152 L 310,243" stroke="#94a3b8" marker-end="url(#arrow)" />
++                          <text x="315" y="195" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">last_feat & done</text>
++
++                          <path class="signal-line" d="M 310,307 L 310,398" stroke="#ec4899" marker-end="url(#arrow-pink)" />
++                          <text x="315" y="355" fill="#ec4899" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">init & sum > 0</text>
++
++                          <path class="signal-line" d="M 278,275 L 152,275" stroke="#94a3b8" marker-end="url(#arrow)" />
++                          <text x="215" y="267" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">not_init || sum == 0</text>
++
++                          <path class="signal-line" d="M 335,415 C 370,410 370,450 335,445" stroke="#ec4899" marker-end="url(#arrow-pink)" />
++                          <text x="375" y="433" fill="#ec4899" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">div_bit != 0</text>
++
++                          <path class="signal-line" d="M 285,415 L 145,295" stroke="#ec4899" marker-end="url(#arrow-pink)" />
++                          <text x="210" y="345" fill="#ec4899" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle" transform="rotate(40, 210, 345)">div_bit == 0</text>
++
++                          <path class="signal-line" d="M 142,295 L 285,407" stroke="#94a3b8" marker-end="url(#arrow)" />
++                          <text x="195" y="365" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle" transform="rotate(38, 195, 365)">ready & !done_seq</text>
++
++                          <path class="signal-line" d="M 120,243 L 120,152" stroke="#94a3b8" marker-end="url(#arrow)" />
++                          <text x="115" y="195" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="end">ready & done_seq</text>
++
++                          <!-- ================= RIGHT HALF: COMPUTATION DATAPATH ================= -->
++                          <g class="signal-group">
++                            <text x="430" y="85" fill="#94a3b8" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="end">score_value [31:0]</text>
++                            <path class="signal-line" d="M 435,80 L 460,80" marker-end="url(#arrow)" />
++                          </g>
++
++                          <g class="module-box soft">
++                            <rect x="460" y="65" width="80" height="40" rx="3" fill="rgba(236, 72, 153, 0.03)" stroke="#ec4899" stroke-width="1" />
++                            <text x="500" y="83" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">Delta Diff</text>
++                            <text x="500" y="97" fill="#f8fafc" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">max - score</text>
++                          </g>
++
++                          <g class="module-box soft">
++                            <rect x="575" y="65" width="80" height="40" rx="4" fill="rgba(236, 72, 153, 0.05)" stroke="#ec4899" stroke-width="1.5" />
++                            <text x="615" y="83" fill="#ec4899" font-weight="bold" font-size="10" font-family="'Inter', sans-serif" text-anchor="middle">exp_lut</text>
++                            <text x="615" y="96" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">ROM (Q0.16)</text>
++                          </g>
++
++                          <g class="module-box mem">
++                            <rect x="690" y="65" width="165" height="40" rx="4" fill="rgba(16, 185, 129, 0.03)" stroke="#10b981" stroke-width="1.5" />
++                            <text x="772.5" y="83" fill="#10b981" font-weight="bold" font-size="10" font-family="'Inter', sans-serif" text-anchor="middle">row_exp_sum [0:127]</text>
++                            <text x="772.5" y="96" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">25-bit Accumulators</text>
++                          </g>
++
++                          <path class="signal-line" d="M 540,85 L 575,85" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 655,85 L 690,85" marker-end="url(#arrow)" />
++                          <text x="672.5" y="78" fill="#94a3b8" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">weight</text>
++
++                          <g class="signal-group">
++                            <text x="430" y="165" fill="#94a3b8" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="end">v_feature_vector [31:0]</text>
++                            <path class="signal-line" d="M 435,160 L 460,160" marker-end="url(#arrow)" />
++                          </g>
++
++                          <g class="module-box soft">
++                            <rect x="460" y="145" width="80" height="40" rx="3" fill="rgba(236, 72, 153, 0.03)" stroke="#ec4899" stroke-width="1" />
++                            <text x="500" y="163" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">Lane Select</text>
++                            <text x="500" y="177" fill="#f8fafc" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">update_v (8b)</text>
++                          </g>
++
++                          <g class="module-box soft">
++                            <rect x="575" y="145" width="80" height="40" rx="4" fill="rgba(236, 72, 153, 0.05)" stroke="#ec4899" stroke-width="1.5" />
++                            <text x="615" y="168" fill="#ec4899" font-weight="bold" font-size="12" font-family="'Inter', sans-serif" text-anchor="middle">X</text>
++                            <text x="615" y="179" fill="#94a3b8" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="middle">weighted_v</text>
++                          </g>
++
++                          <g class="module-box mem">
++                            <rect x="690" y="145" width="165" height="40" rx="4" fill="rgba(16, 185, 129, 0.03)" stroke="#10b981" stroke-width="1.5" />
++                            <text x="772.5" y="163" fill="#10b981" font-weight="bold" font-size="10" font-family="'Inter', sans-serif" text-anchor="middle">row_weighted_sum [0:511]</text>
++                            <text x="772.5" y="176" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">48-bit Accumulators</text>
++                          </g>
++
++                          <path class="signal-line" d="M 540,165 L 575,165" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 615,105 L 615,145" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 655,165 L 690,165" marker-end="url(#arrow)" />
++
++                          <!-- ================= BOTTOM RIGHT: BIT-SERIAL DIVIDER ================= -->
++                          <rect x="440" y="220" width="430" height="310" rx="8" fill="rgba(236, 72, 153, 0.02)" stroke="rgba(236, 72, 153, 0.2)" stroke-width="1.5" />
++                          <text x="455" y="240" fill="#ec4899" font-family="'Share Tech Mono', monospace" font-size="11" font-weight="bold" style="letter-spacing: 1px;">NON-RESTORING / RESTORING BIT-SERIAL DIVIDER</text>
++
++                          <g class="module-box soft">
++                            <rect x="470" y="260" width="160" height="45" rx="4" fill="rgba(236, 72, 153, 0.03)" stroke="#ec4899" stroke-width="1.5" />
++                            <polygon points="470,295 475,300 480,295" fill="none" stroke="#ec4899" stroke-width="1" />
++                            <text x="550" y="278" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">division_remainder (Lshift)</text>
++                            <text x="550" y="295" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">[47:0] (Q16.32)</text>
++                          </g>
++
++                          <g class="module-box soft">
++                            <rect x="680" y="260" width="160" height="45" rx="4" fill="rgba(236, 72, 153, 0.03)" stroke="#ec4899" stroke-width="1.5" />
++                            <polygon points="680,295 685,300 690,295" fill="none" stroke="#ec4899" stroke-width="1" />
++                            <text x="760" y="278" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">division_denominator</text>
++                            <text x="760" y="295" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">[47:0] (Q25.0 padded)</text>
++                          </g>
++
++                          <g class="module-box soft">
++                            <polygon points="560,345 720,345 700,385 580,385" fill="rgba(236, 72, 153, 0.05)" stroke="#ec4899" stroke-width="1.5" />
++                            <text x="640" y="362" fill="#ec4899" font-weight="bold" font-size="10" font-family="'Inter', sans-serif" text-anchor="middle">Subtractor / Comparator</text>
++                            <text x="640" y="377" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">remainder >= (denominator << div_bit)</text>
++                          </g>
++
++                          <g class="module-box soft">
++                            <rect x="470" y="435" width="160" height="45" rx="4" fill="rgba(236, 72, 153, 0.03)" stroke="#ec4899" stroke-width="1.5" />
++                            <polygon points="470,470 475,475 480,470" fill="none" stroke="#ec4899" stroke-width="1" />
++                            <text x="550" y="453" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">division_quotient (Lshift)</text>
++                            <text x="550" y="470" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">[15:0] (Q8.8 Output)</text>
++                          </g>
++
++                          <g class="module-box soft">
++                            <rect x="680" y="435" width="160" height="45" rx="4" fill="rgba(236, 72, 153, 0.03)" stroke="#ec4899" stroke-width="1.5" />
++                            <polygon points="680,470 685,475 690,470" fill="none" stroke="#ec4899" stroke-width="1" />
++                            <text x="760" y="453" fill="#ec4899" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">division_bit Counter</text>
++                            <text x="760" y="470" fill="#f8fafc" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">15 -> 0 (Decr per cycle)</text>
++                          </g>
++
++                          <path class="signal-line" d="M 772,185 L 772,210 L 550,210 L 550,260" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 830,105 L 830,230 L 760,230 L 760,260" marker-end="url(#arrow)" />
++                          
++                          <path class="signal-line" d="M 550,305 L 550,325 L 610,325 L 610,345" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 760,305 L 760,325 L 670,325 L 670,345" marker-end="url(#arrow)" />
++
++                          <path class="signal-line" d="M 580,365 L 450,365 L 450,282 L 470,282" marker-end="url(#arrow)" />
++                          <text x="455" y="315" fill="#ec4899" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="start">Subtract & Shift</text>
++
++                          <path class="signal-line" d="M 640,385 L 640,410 L 550,410 L 550,435" marker-end="url(#arrow)" />
++                          <text x="645" y="405" fill="#ec4899" font-size="7" font-family="'Share Tech Mono', monospace" text-anchor="start">Next Bit (0/1)</text>
++
++                          <path class="signal-line" d="M 760,435 L 760,405 L 690,405 L 690,385" marker-end="url(#arrow)" />
++
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 550,480 L 550,550 L 890,550" marker-end="url(#arrow-pink)" />
++                            <text x="880" y="542" fill="#ec4899" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="end">context_value [15:0] (Q8.8)</text>
++                          </g>
++                        </svg>
++                    </div>
++                `;
++
++                infoArea.innerHTML = `
++                    <div class="tab-content-wrapper">
++                        <div class="info-header">
++                            <h2 class="info-title">
++                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#ec4899; box-shadow: 0 0 8px #ec4899;"></span>
++                                Softmax & Context (甈??瘜? 閮剛?蝝啁?
++                            </h2>
++                        </div>
++                        <div class="info-body">
++                            <p><strong>sparse_softmax_sv</strong> 璅∠?鞎痊?瑁??函? Softmax 瞍?瘜?(Online Softmax) 隞亙???Value ???脰?銋?嚗?蝯撓?箔?銝??? (Context Vector)??折閮剛???批????蝺??貊敞??誑??摨??斗???(Bit-Serial Restoring Divider)??/p>
++                            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
++                                <li><strong>?函? Softmax ??? (FSM):</strong> ?批?游?撘釣??????蝞?+                                    <ul style="padding-left: 15px; margin-top: 5px;">
++                                        <li><code>COLLECT</code>: ?交暺??怠??函? <code>attention_score</code>嚗???脣 <code>UPDATE</code>??/li>
++                                        <li><code>UPDATE</code>: ?單??湔銵?憭批?(<code>row_max</code>) ?????(<code>row_exp_sum</code>)嚗蒂??Value ??銋?蝝臬???<code>row_weighted_sum</code>?暺?摰??脣 <code>PREPARE</code>??/li>
++                                        <li><code>PREPARE</code>: ???瘜?摮嚗??? <code>row_weighted_sum</code> 撌衣宏 8 雿?嚗?瘥???<code>row_exp_sum</code>嚗蒂閮剖??斗?閮?函 15??/li>
++                                        <li><code>DIVIDE</code>: 雿??瘜?蝞??拍??皜??宏雿???16 ???望??扳??箏???/li>
++                                        <li><code>OUTPUT</code>: ??摮頛詨?怠??剁??? <code>context_valid</code>嚗?鞈????/li>
++                                    </ul>
++                                </li>
++                                <li><strong>?隡啁???(exp_lut):</strong> ?交頛詨撌桀潘???折?航??亥” (LUT) 敺 16-bit Q0.16 ?澆????豢????賣???′擃?亥?蝞?嗆??貊?擃??漲??/li>
++                                <li><strong>雿??瘜 (Bit-Serial Restoring Divider):</strong> ?望銵??詨? (??) ?臬???啁?嚗?餉楝?∠??皜?瘥??具 <code>DIVIDE</code> ???嚗望??斗擗?怠???<code>division_remainder</code> ?臬憭扳???潛宏雿???詻??嚗?擗皜閰脤?訾蒂撠? <code>division_quotient</code> 撠?雿?閮剔 1嚗?身??0嚗蒂撠?<code>division_bit</code> 皜?1嚗?啗?蝞????16 雿???/li>
++                            </ul>
++                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">?砍蝺?Softmax ?嗆?瘨?鈭蝯?Softmax ?閬翰?銵?Attention Matrix ??暹?憭批潸??????撩暺?璆萄之蝔漲蝭???嗥???SRAM ?蝛???/p>
++                        </div>
++                    </div>
++                `;
++            } else if (tabId === 'stats_fifo') {
++                canvasArea.innerHTML = `
++                    <div class="tab-content-wrapper" style="width:100%; height:100%;">
++                        <svg width="100%" height="100%" viewBox="0 0 900 580" fill="none" xmlns="http://www.w3.org/2000/svg">
++                          <defs>
++                            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
++                              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8"/>
++                            </marker>
++                            <marker id="arrow-lime" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
++                              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#84cc16"/>
++                            </marker>
++                            <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
++                              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#3b82f6"/>
++                            </marker>
++                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
++                              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255, 255, 255, 0.02)" stroke-width="1"/>
++                            </pattern>
++                          </defs>
++
++                          <rect width="100%" height="100%" fill="url(#grid)" />
++
++                          <!-- Outer container -->
++                          <rect x="15" y="15" width="870" height="550" fill="none" stroke="rgba(132, 204, 22, 0.15)" stroke-width="2" stroke-dasharray="6 6" rx="12" />
++                          <text x="30" y="40" fill="rgba(132, 204, 22, 0.4)" font-family="'Share Tech Mono', monospace" font-size="14" style="letter-spacing: 1.5px;">STATS_COUNTER & RESULT_FIFO DETAILS</text>
++
++                          <!-- Left Column Header -->
++                          <text x="200" y="55" fill="#84cc16" font-family="'Share Tech Mono', monospace" font-weight="bold" font-size="12" text-anchor="middle">STATS COUNTER MODULE</text>
++                          <!-- Right Column Header -->
++                          <text x="650" y="55" fill="#3b82f6" font-family="'Share Tech Mono', monospace" font-weight="bold" font-size="12" text-anchor="middle">RESULT FIFO & BUS BRIDGE (CHIP_TOP)</text>
++
++                          <!-- Vertical divider line -->
++                          <line x1="410" y1="45" x2="410" y2="540" stroke="rgba(132, 204, 22, 0.15)" stroke-dasharray="4 4" />
++
++                          <!-- ================= LEFT HALF: STATS COUNTERS ================= -->
++                          <rect x="35" y="70" width="350" height="480" rx="8" fill="rgba(132, 204, 22, 0.02)" stroke="rgba(132, 204, 22, 0.2)" stroke-width="1.5" />
++
++                          <!-- pair_count accumulator -->
++                          <g class="module-box stats" style="--glow-color: #84cc16;">
++                            <rect x="60" y="90" width="200" height="75" rx="4" fill="rgba(132, 204, 22, 0.03)" stroke="#84cc16" stroke-width="1.5" />
++                            <polygon points="60,155 65,160 70,155" fill="none" stroke="#84cc16" stroke-width="1" />
++                            <text x="75" y="112" fill="#84cc16" font-weight="bold" font-size="10" font-family="'Inter', sans-serif">pair_count</text>
++                            <text x="75" y="130" fill="#f8fafc" font-size="11" font-family="'Share Tech Mono', monospace">0x0000_0000</text>
++                            <text x="75" y="148" fill="#94a3b8" font-size="8" font-family="'Inter', sans-serif">Total QK pairs processed (32b)</text>
++
++                            <!-- Adder block -->
++                            <rect x="290" y="105" width="45" height="45" rx="4" fill="rgba(132, 204, 22, 0.05)" stroke="#84cc16" />
++                            <text x="312.5" y="125" fill="#84cc16" font-weight="bold" font-size="12" font-family="'Inter', sans-serif" text-anchor="middle">+1</text>
++                          </g>
++
++                          <!-- cycle_count accumulator -->
++                          <g class="module-box stats" style="--glow-color: #84cc16;">
++                            <rect x="60" y="210" width="200" height="75" rx="4" fill="rgba(132, 204, 22, 0.03)" stroke="#84cc16" stroke-width="1.5" />
++                            <polygon points="60,275 65,280 70,275" fill="none" stroke="#84cc16" stroke-width="1" />
++                            <text x="75" y="232" fill="#84cc16" font-weight="bold" font-size="10" font-family="'Inter', sans-serif">cycle_count</text>
++                            <text x="75" y="250" fill="#f8fafc" font-size="11" font-family="'Share Tech Mono', monospace">0x0000_0000</text>
++                            <text x="75" y="268" fill="#94a3b8" font-size="8" font-family="'Inter', sans-serif">Total active execution cycles (32b)</text>
++
++                            <!-- Adder block -->
++                            <rect x="290" y="225" width="45" height="45" rx="4" fill="rgba(132, 204, 22, 0.05)" stroke="#84cc16" />
++                            <text x="312.5" y="245" fill="#84cc16" font-weight="bold" font-size="12" font-family="'Inter', sans-serif" text-anchor="middle">+1</text>
++                          </g>
++
++                          <!-- mac_count accumulator -->
++                          <g class="module-box stats" style="--glow-color: #84cc16;">
++                            <rect x="60" y="330" width="200" height="75" rx="4" fill="rgba(132, 204, 22, 0.03)" stroke="#84cc16" stroke-width="1.5" />
++                            <polygon points="60,395 65,400 70,395" fill="none" stroke="#84cc16" stroke-width="1" />
++                            <text x="75" y="352" fill="#84cc16" font-weight="bold" font-size="10" font-family="'Inter', sans-serif">mac_count</text>
++                            <text x="75" y="370" fill="#f8fafc" font-size="11" font-family="'Share Tech Mono', monospace">0x0000_0000</text>
++                            <text x="75" y="388" fill="#94a3b8" font-size="8" font-family="'Inter', sans-serif">Total MAC operations (32b)</text>
++
++                            <!-- Adder block -->
++                            <rect x="290" y="345" width="45" height="45" rx="4" fill="rgba(132, 204, 22, 0.05)" stroke="#84cc16" />
++                            <text x="312.5" y="365" fill="#84cc16" font-weight="bold" font-size="12" font-family="'Inter', sans-serif" text-anchor="middle">+4</text>
++                          </g>
++
++                          <!-- Inputs for Left Side -->
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 25,127 L 60,127" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++                            <text x="30" y="119" fill="#84cc16" font-size="8" font-family="'Share Tech Mono', monospace">pair_valid</text>
++                          </g>
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 25,247 L 60,247" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++                            <text x="30" y="239" fill="#84cc16" font-size="8" font-family="'Share Tech Mono', monospace">clk</text>
++                          </g>
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 25,367 L 60,367" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++                            <text x="30" y="359" fill="#84cc16" font-size="8" font-family="'Share Tech Mono', monospace">pair_valid</text>
++                          </g>
++
++                          <!-- Feedback / Adder loops -->
++                          <path class="signal-line" d="M 260,120 L 290,120" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++                          <path class="signal-line" d="M 312.5,105 L 312.5,80 L 160,80 L 160,90" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++                          
++                          <path class="signal-line" d="M 260,240 L 290,240" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++                          <path class="signal-line" d="M 312.5,225 L 312.5,200 L 160,200 L 160,210" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++
++                          <path class="signal-line" d="M 260,360 L 290,360" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++                          <path class="signal-line" d="M 312.5,345 L 312.5,320 L 160,320 L 160,330" stroke="#84cc16" marker-end="url(#arrow-lime)" />
++
++                          <!-- Reset / Clear signal -->
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 60,490 L 300,490" stroke="#fbbf24" stroke-dasharray="2 2" />
++                            <path class="signal-line" d="M 160,490 L 160,165" stroke="#fbbf24" stroke-dasharray="2 2" marker-end="url(#arrow)" />
++                            <path class="signal-line" d="M 200,490 L 200,285" stroke="#fbbf24" stroke-dasharray="2 2" marker-end="url(#arrow)" />
++                            <path class="signal-line" d="M 240,490 L 240,405" stroke="#fbbf24" stroke-dasharray="2 2" marker-end="url(#arrow)" />
++                            <circle cx="160" cy="490" r="3" fill="#fbbf24" />
++                            <circle cx="200" cy="490" r="3" fill="#fbbf24" />
++                            <circle cx="240" cy="490" r="3" fill="#fbbf24" />
++                            <text x="65" y="482" fill="#fbbf24" font-size="8" font-family="'Share Tech Mono', monospace">rst_n / clear (start)</text>
++                          </g>
++
++                          <!-- ================= RIGHT HALF: RESULT FIFO ================= -->
++                          <rect x="425" y="70" width="450" height="480" rx="8" fill="rgba(59, 130, 246, 0.02)" stroke="rgba(59, 130, 246, 0.2)" stroke-width="1.5" />
++
++                          <!-- Circular Queue Visualizer -->
++                          <g>
++                            <rect x="520" y="110" width="180" height="260" fill="none" stroke="#3b82f6" stroke-width="1" />
++                            <text x="610" y="100" fill="#3b82f6" font-size="9" font-family="'Share Tech Mono', monospace" text-anchor="middle">Circular Array Slots [0:15]</text>
++                            
++                            <rect x="525" y="115" width="170" height="28" rx="2" fill="rgba(59, 130, 246, 0.08)" stroke="rgba(59, 130, 246, 0.2)" />
++                            <text x="535" y="132" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace">Slot 7 (Empty)</text>
++                            
++                            <rect x="525" y="146" width="170" height="28" rx="2" fill="rgba(59, 130, 246, 0.08)" stroke="rgba(59, 130, 246, 0.2)" />
++                            <text x="535" y="163" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace">Slot 6 (Empty)</text>
++                            
++                            <rect x="525" y="177" width="170" height="28" rx="2" fill="rgba(59, 130, 246, 0.08)" stroke="rgba(59, 130, 246, 0.2)" />
++                            <text x="535" y="194" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace">Slot 5 (Empty)</text>
++
++                            <rect x="525" y="208" width="170" height="28" rx="2" fill="rgba(16, 185, 129, 0.08)" stroke="#10b981" stroke-width="1.5" />
++                            <text x="535" y="225" fill="#10b981" font-size="8" font-family="'Share Tech Mono', monospace" font-weight="bold">Slot 4 (Next Wr)</text>
++
++                            <rect x="525" y="239" width="170" height="28" rx="2" fill="rgba(59, 130, 246, 0.15)" stroke="rgba(59, 130, 246, 0.4)" />
++                            <text x="535" y="256" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace">Slot 3: Q=0, F=3, V=0x2E10</text>
++
++                            <rect x="525" y="270" width="170" height="28" rx="2" fill="rgba(59, 130, 246, 0.15)" stroke="rgba(59, 130, 246, 0.4)" />
++                            <text x="535" y="287" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace">Slot 2: Q=0, F=2, V=0x153A</text>
++
++                            <rect x="525" y="301" width="170" height="28" rx="2" fill="rgba(59, 130, 246, 0.25)" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="535" y="318" fill="#3b82f6" font-size="8" font-family="'Share Tech Mono', monospace" font-weight="bold">Slot 1: Q=0, F=1, V=0x08FF</text>
++
++                            <rect x="525" y="332" width="170" height="28" rx="2" fill="rgba(59, 130, 246, 0.08)" stroke="rgba(59, 130, 246, 0.2)" />
++                            <text x="535" y="349" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace">Slot 0 (Empty/Read)</text>
++                          </g>
++
++                          <!-- Pointer labels -->
++                          <g class="module-box mem" style="--glow-color: #10b981;">
++                            <rect x="745" y="207" width="95" height="30" rx="3" fill="rgba(16, 185, 129, 0.05)" stroke="#10b981" />
++                            <text x="792.5" y="226" fill="#10b981" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">fifo_wr_ptr = 4</text>
++                            <path class="signal-line" d="M 745,222 L 705,222" stroke="#10b981" marker-end="url(#arrow)" />
++                          </g>
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="745" y="300" width="95" height="30" rx="3" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" />
++                            <text x="792.5" y="319" fill="#3b82f6" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">fifo_rd_ptr = 1</text>
++                            <path class="signal-line" d="M 745,315 L 705,315" stroke="#3b82f6" marker-end="url(#arrow)" />
++                          </g>
++
++                          <!-- Write Port / Push Logic -->
++                          <g class="signal-group">
++                            <path class="signal-line" d="M 435,140 L 485,140 L 485,222 L 520,222" marker-end="url(#arrow)" />
++                            <text x="440" y="132" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace">core_context_value</text>
++                            <text x="440" y="152" fill="#94a3b8" font-size="8" font-family="'Share Tech Mono', monospace">core_context_valid</text>
++                            <circle cx="485" cy="222" r="3" fill="#10b981" />
++                            <text x="495" y="215" fill="#10b981" font-size="8" font-family="'Share Tech Mono', monospace">push (valid & !full)</text>
++                          </g>
++
++                          <!-- Status counter -->
++                          <g class="module-box alu" style="--glow-color: #3b82f6;">
++                            <rect x="520" y="390" width="180" height="50" rx="4" fill="rgba(59, 130, 246, 0.03)" stroke="#3b82f6" stroke-width="1.5" />
++                            <text x="610" y="410" fill="#3b82f6" font-weight="bold" font-size="10" font-family="'Inter', sans-serif" text-anchor="middle">fifo_count logic</text>
++                            <text x="610" y="428" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">Count: 3 | Empty: 0 | Full: 0</text>
++                          </g>
++                          <path class="signal-line" d="M 610,370 L 610,390" marker-end="url(#arrow)" />
++                          <path class="signal-line" d="M 520,415 L 435,415" marker-end="url(#arrow)" />
++                          <text x="440" y="407" fill="#3b82f6" font-size="8" font-family="'Share Tech Mono', monospace">core_context_ready (!full)</text>
++
++                          <!-- APB Read / POP Logic -->
++                          <g class="signal-group">
++                            <rect x="730" y="375" width="120" height="60" rx="3" fill="rgba(251, 191, 36, 0.05)" stroke="#fbbf24" stroke-width="1" />
++                            <text x="790" y="393" fill="#fbbf24" font-weight="bold" font-size="9" font-family="'Inter', sans-serif" text-anchor="middle">Host Read Port</text>
++                            <text x="790" y="408" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">ADDR_RESULT_POP</text>
++                            <text x="790" y="423" fill="#f8fafc" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">ADDR_RESULT_VALUE</text>
++                          </g>
++
++                          <path class="signal-line" d="M 730,405 L 685,405 C 670,405 670,445 685,445" marker-end="url(#arrow)" />
++                          <text x="702" y="398" fill="#fbbf24" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="middle">pop_req</text>
++
++                          <path class="signal-line" d="M 705,325 L 725,325 L 725,385 L 730,385" marker-end="url(#arrow-blue)" />
++                          <text x="715" y="360" fill="#3b82f6" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="start">fifo_front</text>
++
++                          <path class="signal-line" d="M 850,405 L 890,405" marker-end="url(#arrow)" />
++                          <text x="885" y="397" fill="#fbbf24" font-size="8" font-family="'Share Tech Mono', monospace" text-anchor="end">data_io (APB Read)</text>
++                        </svg>
++                    </div>
++                `;
++
++                infoArea.innerHTML = `
++                    <div class="tab-content-wrapper">
++                        <div class="info-header">
++                            <h2 class="info-title">
++                                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background-color:#84cc16; box-shadow: 0 0 8px #84cc16;"></span>
++                                Stats & Result FIFO 閰喟敦隤芣?
++                            </h2>
++                        </div>
++                        <div class="info-body">
++                            <p>?砍???蝷箔?蝟餌絞銝剔?<strong>?蝯梯?閮??(stats_counter)</strong> ??strong>蝯?敹怠?雿? (Result FIFO)</strong> ??RTL 蝖祇?蝝啁???雿??嗚?芋蝯?鞎祉?折?蝞??賭蒂敹怠?閮?蝯?嚗誑?脰?憭蝮賜? Readout嚗?/p>
++                            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 10px;">
++                                <li><strong>?蝯梯?閮??(stats_counter):</strong> ?銝蝡? 32雿?蝝臬??怠??剁?
++                                    <ul style="padding-left: 15px; margin-top: 5px;">
++                                        <li><code>pair_count</code>: 蝝臬????蝞???Query/Key Pair ?賊?????<code>pair_valid</code> ?⊥????喳? 1??/li>
++                                        <li><code>cycle_count</code>: 蝝臬?蝮賢銵望??閮???瘥??望??? 1嚗?其?蝎曄Ⅱ皜祇?蝖祇?撱園 (Latency)??/li>
++                                        <li><code>mac_count</code>: 蝝臬?蝮賭??活?詻??箸???QK ???閬?蝞?<code>FEATURE_DIM = 4</code> ?雁摨佗?瘥?????撠?芸???4嚗移蝣箄???????/li>
++                                    </ul>
++                                </li>
++                                <li><strong>蝯? FIFO 蝺抵?? (Result FIFO):</strong> 撖虫???<code>chip_top.v</code> 銝哨??箔??楛摨衣 16 words?祝摨衣 26-bit ??雿? (Circular Queue)嚗?+                                    <ul style="padding-left: 15px; margin-top: 5px;">
++                                        <li><strong>撖怠蝡?(Push):</strong> ??Softmax 璅∠?頛詨 <code>core_context_valid</code> 銝?FIFO ?芣遛 (<code>!fifo_full</code>) ??撠?<code>core_context_q_idx</code>??code>core_context_feature_idx</code> ??16雿???<code>core_context_value</code> 撖怠 <code>fifo_wr_ptr</code> ???局雿?/li>
++                                        <li><strong>霈?垢 (Pop):</strong> 憭 Host ?? APB 蝮賜??潸絲霈???<code>ADDR_RESULT_POP (0x0E)</code> 撖怠 1 ??閫貊 <code>fifo_pop_req</code>嚗蝙 <code>fifo_rd_ptr</code> ???潸◤敶嚗蒂?湔 <code>fifo_count</code>??/li>
++                                        <li><strong>蝛箸遛璅?:</strong> ? <code>fifo_count</code> ??閮?? <code>fifo_count == 16</code> ??擃?<code>fifo_full</code> 銝血? <code>core_context_ready</code> ??嚗??皜貊恣蝺???<code>fifo_count == 0</code> ??擃?<code>fifo_empty</code> ?怠?銝餅?霈??/li>
++                                    </ul>
++                                </li>
++                            </ul>
++                            <p style="margin-top: 16px; font-size: 13px; color: var(--text-muted);">?祈身閮? Result FIFO ??閫?虫????詨?????蝞? APB 蝮賜???????踹?銝餅?霈?辣?脣??湧?蝞敹蝜???/p>
++                        </div>
++                    </div>
++                `;
+             } else {
+                 canvasArea.innerHTML = `
+                     <div class="tab-content-wrapper canvas-placeholder">
+                         <h2>${activeTab.name} - ?餉楝?嗆???/h2>
+                         <div style="font-size: 14px; margin-top: 10px; opacity: 0.6; line-height: 1.8;">
+                             [ 鈭?撘?SVG ?餉楝????]<br>
+                             蝟餌絞瑼Ｘ葫?啣???Tab: <span style="color: #3b82f6; font-weight: bold;">${tabId}</span> 撌脫?????br>
+                             ?餉楝????郭敶Ｗ??怠??刻?蝒??典?蝥?Task 銝剖??祕雿?                         </div>
+                     </div>

@@ -7,6 +7,7 @@ set RTL_FILE [list \
     "../../Rtl/KV_LBV2.v" \
     "../../Rtl/qk_pair_streamer.v" \
     "../../Rtl/stats_counter.v" \
+    "../../Rtl/sparse_softmax_sv.v" \
     "../../Rtl/sparse_attention_core.v" \
 ]
 set SDC_FILE   "${NAME}.sdc"
