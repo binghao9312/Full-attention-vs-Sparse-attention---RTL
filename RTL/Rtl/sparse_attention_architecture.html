@@ -815,7 +815,7 @@
                                      <ul>
                                          <li><strong>第一階段 (PHASE_LOCAL):</strong> 首先完成上述本地滑動窗口注意力的索引配對。</li>
                                          <li><strong>第二階段 (PHASE_COL_GLOBAL - 2'd1):</strong> 列全局注意力。<code>q_idx</code> 從 0 循序累加到 <code>cfg_seq_len-1</code>，此時 <code>k_idx</code> 固定為 <code>GLOBAL_INDEX</code> (預設為 0)。為避免重複計算，當 Query 落在與 <code>GLOBAL_INDEX</code> 相同的本地區塊內時，<code>pair_valid</code> 會自動被拉低過濾。</li>
-                                         <li><strong>第三階段 (PHASE_ROW_GLOBAL - 2'd2):</strong> 行全局注意力。<code>q_idx</code> 固定為 <code>GLOBAL_INDEX</code>，此時 <code>k_idx</code> 從 0 循序累加到 <code>cfg_seq_len-1</code>。同樣地，若 Key 落在與 <code>GLOBAL_INDEX</code> 相同的本地區塊內，則過濾 `pair_valid` 以避免重複。</li>
+                                         <li><strong>第三階段 (PHASE_ROW_GLOBAL - 2'd2):</strong> 行全局注意力。<code>q_idx</code> 固定為 <code>GLOBAL_INDEX</code>，此時 <code>k_idx</code> 從 0 循序累加到 <code>cfg_seq_len-1</code>。同樣地，若 Key 落在與 <code>GLOBAL_INDEX</code> 相同的本地區塊內，則過濾 <code>pair_valid</code> 以避免重複。</li>
                                      </ul>
                                  </li>
                                  <li><strong>蝴蝶網路模式 (Butterfly Mode - MODE_BUTTERFLY = 3'd4):</strong>
