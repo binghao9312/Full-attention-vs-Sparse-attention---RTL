@@ -1,0 +1,166 @@
+<mxfile host="app.diagrams.net" modified="2026-07-13T00:00:00Z" agent="Codex Drawio Skill" version="24.7.17" type="device">
+  <diagram id="chiptoparch01" name="chip_top Architecture">
+    <mxGraphModel dx="3600" dy="2000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3600" pageHeight="2000" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="chip_top 硬體架構（依 chip_top.v）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1;fontFamily=Arial;fontColor=#1F2937;" vertex="1" parent="1">
+          <mxGeometry x="80" y="50" width="940" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="externalClock" value="外部時脈／重置&lt;br&gt;clk, rst_n" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#475569;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#1F2937;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="330" width="300" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="host" value="外部主機&lt;br&gt;Bus Master" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#0C4A6E;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="790" width="300" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="chipBoundary" value="chip_top" style="swimlane;html=1;rounded=1;startSize=56;horizontal=1;fillColor=#F8FAFC;swimlaneFillColor=#E2E8F0;strokeColor=#475569;strokeWidth=2;fontSize=26;fontStyle=1;fontFamily=Arial;fontColor=#1F2937;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="470" y="170" width="3020" height="1640" as="geometry" />
+        </mxCell>
+
+        <mxCell id="resetSync" value="重置同步器&lt;br&gt;rst_sync_0 / rst_sync_1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#7E22CE;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#581C87;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="620" y="330" width="540" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="bus" value="Bus 介面與暫存器控制&lt;br&gt;讀寫解碼、busy/done、錯誤檢查" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#2563EB;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#1E3A8A;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="620" y="730" width="600" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="cfg" value="組態暫存器&lt;br&gt;seq_len / mode / qkv_addr" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#2563EB;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#1E3A8A;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="730" width="520" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="fifo" value="結果 FIFO&lt;br&gt;16 × 48 bits&lt;br&gt;q_idx + k_idx + score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#14532D;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="2840" y="730" width="520" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="snapshots" value="統計值快照暫存器&lt;br&gt;pair / cycle / MAC count" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#78350F;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="2840" y="1180" width="520" height="170" as="geometry" />
+        </mxCell>
+
+        <mxCell id="coreBoundary" value="sparse_attention_core" style="swimlane;html=1;rounded=1;startSize=56;horizontal=1;fillColor=#FFF7ED;swimlaneFillColor=#FFEDD5;strokeColor=#C2410C;strokeWidth=2;fontSize=26;fontStyle=1;fontFamily=Arial;fontColor=#7C2D12;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="760" y="1070" width="1870" height="610" as="geometry" />
+        </mxCell>
+        <mxCell id="streamer" value="QK Pair Streamer&lt;br&gt;稀疏模式產生 (q_idx, k_idx)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#EA580C;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="890" y="1220" width="450" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="qkvMem" value="QKV Feature Memory&lt;br&gt;Q / K / V 特徵儲存" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#EA580C;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="1220" width="480" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="dot" value="QK Dot Accumulator&lt;br&gt;Q · K 分數計算" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#EA580C;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="2150" y="1220" width="350" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="stats" value="Stats Counter&lt;br&gt;pair / cycle / MAC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#EA580C;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="890" y="1480" width="450" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="outPipe" value="輸出／完成 Pipeline&lt;br&gt;score register + done delay" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#EA580C;strokeWidth=2;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;spacing=12;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="1480" width="600" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="eClockReset" value="clk, rst_n" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#1F2937;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="externalClock" target="resetSync">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eResetBus" value="internal_rst_n" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7E22CE;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#581C87;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="resetSync" target="bus">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="890" y="590" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eResetCore" value="clk, internal_rst_n" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7E22CE;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#581C87;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="resetSync" target="coreBoundary">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1250" y="405" /><mxPoint x="1250" y="1070" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="eHostWrite" value="寫入：req, rw=0, addr, data_io" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#0C4A6E;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;" edge="1" parent="1" source="host" target="bus">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="500" y="864" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eBusRead" value="讀回：data_io, ready, irq_done" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#0C4A6E;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="bus" target="host">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="500" y="990" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="eBusCfg" value="control / seq_len / qkv_addr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2563EB;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#1E3A8A;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="bus" target="cfg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eCfgStreamer" value="start, cfg_seq_len, mode" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2563EB;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#1E3A8A;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="cfg" target="streamer">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1605" y="1000" /><mxPoint x="1115" y="1000" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eBusMem" value="QKV write" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2563EB;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#1E3A8A;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="bus" target="qkvMem">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="920" y="1025" /><mxPoint x="1750" y="1025" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="ePairMem" value="q_idx / k_idx" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C2410C;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.4;entryDx=0;entryDy=0;" edge="1" parent="1" source="streamer" target="qkvMem">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eMemDot" value="Q/K feature vectors" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C2410C;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="qkvMem" target="dot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ePairDot" value="pair_valid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C2410C;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;exitX=1;exitY=0.85;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="streamer" target="dot">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1430" y="1450" /><mxPoint x="2325" y="1450" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ePairStats" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C2410C;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="streamer" target="stats">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eDotOut" value="score" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C2410C;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="dot" target="outPipe">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="2325" y="1440" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ePairDone" value="done" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C2410C;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#7C2D12;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="streamer" target="outPipe">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1450" y="1645" /><mxPoint x="1810" y="1645" /><mxPoint x="1810" y="1545" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="eOutFifo" value="result" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#14532D;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="outPipe" target="fifo">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="2680" y="1545" /><mxPoint x="2680" y="875" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eFifoReady" value="score_ready" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#14532D;exitX=0;exitY=0.35;exitDx=0;exitDy=0;entryX=1;entryY=0.35;entryDx=0;entryDy=0;" edge="1" parent="1" source="fifo" target="streamer">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="2700" y="700" /><mxPoint x="1400" y="700" /><mxPoint x="1400" y="1285" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eFifoReadyDot" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#14532D;exitX=0;exitY=0.45;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="fifo" target="dot">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="2720" y="650" /><mxPoint x="2560" y="650" /><mxPoint x="2560" y="1265" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="eFifoBus" value="result front" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#14532D;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="fifo" target="bus">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="2700" y="1020" /><mxPoint x="1300" y="1020" /><mxPoint x="1300" y="875" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eBusFifo" value="pop / clear" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#14532D;exitX=1;exitY=0.9;exitDx=0;exitDy=0;entryX=0;entryY=0.95;entryDx=0;entryDy=0;" edge="1" parent="1" source="bus" target="fifo">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1300" y="980" /><mxPoint x="2750" y="980" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eStatsSnap" value="statistics" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D97706;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#78350F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="stats" target="snapshots">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="2750" y="1545" /><mxPoint x="2750" y="1265" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eDoneBus" value="core_done" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2563EB;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#1E3A8A;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="outPipe" target="bus">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1800" y="1545" /><mxPoint x="1800" y="1040" /><mxPoint x="920" y="1040" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eSnapBus" value="統計值讀回" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D97706;strokeWidth=2;endArrow=block;endFill=1;fontSize=26;fontFamily=Arial;fontColor=#78350F;exitX=0;exitY=0.85;exitDx=0;exitDy=0;entryX=1;entryY=0.95;entryDx=0;entryDy=0;" edge="1" parent="1" source="snapshots" target="bus">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="2700" y="1435" /><mxPoint x="1350" y="1435" /><mxPoint x="1350" y="935" /></Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
