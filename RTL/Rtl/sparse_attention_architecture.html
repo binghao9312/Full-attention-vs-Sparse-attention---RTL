@@ -621,7 +621,7 @@
                                    <td style="padding:6px 4px;">當前 FIFO 頂端結果之 Query 索引。</td>
                                  </tr>
                                  <tr style="border-bottom:1px dashed rgba(255,255,255,0.05);">
-                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_RESULT_FEAT_IDX</td>
+                                   <td style="padding:6px 4px; font-family:monospace; color:#fbbf24;">ADDR_RESULT_FEATURE_IDX</td>
                                    <td style="padding:6px 4px; font-family:monospace;">0x09</td>
                                    <td style="padding:6px 4px;">RO</td>
                                    <td style="padding:6px 4px;">當前 FIFO 頂端結果之 Feature 維度索引。</td>
@@ -1584,10 +1584,10 @@
                              <p><strong>sparse_softmax_sv</strong> 模組負責執行在線 Softmax 演算法 (Online Softmax) 以及與 Value 向量進行乘加，最終輸出上下文向量 (Context Vector)。其內部設計包含控制狀態機、在線指數累加器、以及位序列除法器 (Bit-Serial Restoring Divider)。</p>
                              
                              <h3 style="color:#ec4899; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(236,72,153,0.3); padding-bottom:4px;">1. 指數 LUT 與 Delta 差值計算</h3>
-                             <p>本設計採用唯讀查表 (ROM LUT) 機制進行自然指數 $e^{-x}$ 的近似運算：</p>
+                             <p>本設計採用唯讀查表 (ROM LUT) 機制進行自然指數 e⁻ˣ 的近似運算：</p>
                              <ul style="padding-left: 20px; line-height: 1.8; margin-top: 6px;">
-                               <li><strong>差值縮放:</strong> 當 Stage 2 點積分數 <code>score_value</code> 抵達時，計算其與該行 Query 當前最大值 <code>row_max</code> 的絕對差值，並右移 <code>SCORE_SCALE_SHIFT = 1</code> 位元進行縮放（相當於除以 2，對應 $\sqrt{d_{model}} = 2$ 縮放）：<code>incoming_delta = |score_value - row_max| >> 1</code>。</li>
-                               <li><strong>查表映射:</strong> 使用 <code>incoming_delta</code> 定址 <code>exp_lut</code>。內部 ROM 包含了 12 組 Q0.16 定點數格式的自然指數近似值：0對應65535 ($e^0 pprox 1.0$), 1對應24109 ($e^{-0.5} pprox 0.367$), 2對應8869 ($e^{-1.0} pprox 0.135$)... 當差值 $\ge 11$ 時，指數值趨近於 0，查表直接返回 0。這使得指數計算僅需 1 個週期即可完成。</li>
+                               <li><strong>差值縮放:</strong> 當 Stage 2 點積分數 <code>score_value</code> 抵達時，計算其與該行 Query 當前最大值 <code>row_max</code> 的絕對差值，並右移 <code>SCORE_SCALE_SHIFT = 1</code> 位元進行縮放（相當於除以 2，對應 √d_model = 2 縮放）：<code>incoming_delta = |score_value - row_max| >> 1</code>。</li>
+                               <li><strong>查表映射:</strong> 使用 <code>incoming_delta</code> 定址 <code>exp_lut</code>。內部 ROM 包含了 12 組 Q0.16 定點數格式的自然指數近似值：0對應65535 (e⁰ ≈ 1.0), 1對應24109 (e⁻⁰·⁵ ≈ 0.367), 2對應8869 (e⁻¹·⁰ ≈ 0.135)... 當差值 ≥ 11 時，指數值趨近於 0，查表直接返回 0。這使得指數計算僅需 1 個週期即可完成。</li>
                              </ul>
 
                              <h3 style="color:#ec4899; margin-top:16px; font-size:15px; border-bottom:1px solid rgba(236,72,153,0.3); padding-bottom:4px;">2. Weighted Sum 累加與動態重縮放</h3>
