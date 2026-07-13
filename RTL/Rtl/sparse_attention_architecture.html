@@ -81,6 +81,7 @@
         /* Tabs styling */
         .tabs {
             display: flex;
+            align-items: center;
             gap: 12px;
             margin-bottom: 24px;
             overflow-x: auto;
@@ -117,6 +118,21 @@
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.25);
         }
 
+        /* Toggle button style */
+        .tab-btn.toggle-btn {
+            margin-left: auto;
+            border-color: rgba(236, 72, 153, 0.2);
+            background: rgba(236, 72, 153, 0.05);
+            color: #ec4899;
+        }
+        .tab-btn.toggle-btn:hover {
+            border-color: #ec4899;
+            color: var(--text-main);
+            background: rgba(236, 72, 153, 0.1);
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+            transform: translateY(-1px);
+        }
+
         /* Dashboard layout grid */
         .dashboard {
             display: grid;
@@ -125,6 +141,14 @@
             flex-grow: 1;
             height: calc(100vh - 160px);
             min-height: 500px;
+        }
+
+        /* Dashboard layout when info panel is hidden */
+        .dashboard.info-hidden {
+            grid-template-columns: 1fr;
+        }
+        .dashboard.info-hidden .info-panel {
+            display: none;
         }
 
         @media (max-width: 1024px) {
@@ -285,6 +309,14 @@
                 btn.dataset.id = tab.id;
                 nav.appendChild(btn);
             });
+
+            // Add toggle info panel button
+            const toggleBtn = document.createElement('button');
+            toggleBtn.id = 'toggle-info-btn';
+            toggleBtn.className = 'tab-btn toggle-btn';
+            toggleBtn.innerHTML = '<span class="btn-icon">👁️</span> <span class="btn-text">隱藏說明</span>';
+            toggleBtn.onclick = toggleInfoPanel;
+            nav.appendChild(toggleBtn);
             
             // Render initial tab content
             switchTab('overview');
@@ -293,9 +325,25 @@
         // Switch active tab
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.id === tabId);
+                if (btn.id !== 'toggle-info-btn') {
+                    btn.classList.toggle('active', btn.dataset.id === tabId);
+                }
             });
             renderContent(tabId);
+        }
+
+        // Toggle explanation panel visibility
+        function toggleInfoPanel() {
+            const dashboard = document.querySelector('.dashboard');
+            const btn = document.getElementById('toggle-info-btn');
+            const isHidden = dashboard.classList.toggle('info-hidden');
+            if (isHidden) {
+                btn.querySelector('.btn-text').textContent = '顯示說明';
+                btn.querySelector('.btn-icon').textContent = '👁️‍🗨️';
+            } else {
+                btn.querySelector('.btn-text').textContent = '隱藏說明';
+                btn.querySelector('.btn-icon').textContent = '👁️';
+            }
         }
 
         // Render mockup content to verify UI framework works
